@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload TXT File</title>
+    
+</head>
+
+<body>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" name="file" accept=".txt">
+        <button type="button" onclick="uploadFile()">Upload</button>
+    </form>
+    <script>//<script type="module" src="/src/index.js"/>
+     const BACK = 'http://127.0.0.1:5000'
+        function uploadFile() {
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            formData.append('file', fileInput.files[0]);
+
+            fetch(`${BACK}/upload`, {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+        document.querySelector("button").addEventListener("click", uploadFile);
+    </script>
+</body>
+
+</html>
