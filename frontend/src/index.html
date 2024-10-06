@@ -5,20 +5,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload TXT File</title>
-    
 </head>
 
 <body>
     <form id="uploadForm">
-        <input type="file" id="fileInput" name="file" accept=".txt">
-        <button type="button" onclick="uploadFile()">Upload</button>
+        <input type="file" id="fileInput" name="file">
+        <br>
+        <label for="testSize">Porcentagem de teste:</label>
+        <input type="number" id="testSize" name="testSize" min="1" max="100" required>
+        <input type="text" id="classColumn" name="classColumn" required>
+        <button type="button" onclick="uploadFile()">Submit</button>
     </form>
-    <script>//<script type="module" src="/src/index.js"/>
-     const BACK = 'http://127.0.0.1:5000'
+
+    <div id="images"></div>
+
+    <script>
+        const BACK = 'http://127.0.0.1:5000';
+
         function uploadFile() {
             const formData = new FormData();
             const fileInput = document.getElementById('fileInput');
+            const testSize = document.getElementById('testSize').value;
+            const classColumn = document.getElementById('classColumn').value;
+
             formData.append('file', fileInput.files[0]);
+            formData.append('testSize', testSize);
+            formData.append('classColumn', classColumn);
 
             fetch(`${BACK}/upload`, {
                 method: 'POST',
@@ -27,12 +39,35 @@
                 .then(response => response.json())
                 .then(data => {
                     alert(data.message);
+                    fetchImages();
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
         }
-        document.querySelector("button").addEventListener("click", uploadFile);
+
+        function fetchImages() {
+            fetch(`${BACK}/api/lineardiscriminant`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const imagesDiv = document.getElementById('images');
+                    imagesDiv.innerHTML = ''; // Limpa as imagens existentes
+
+                    data.Plots.forEach(imagePath => {
+                        const img = document.createElement('img');
+                        img.src = `${BACK}/${imagePath}`;
+                        img.alt = 'Plot Image';
+                        img.style.width = '300px'; // Ajuste a largura conforme necessário
+                        imagesDiv.appendChild(img);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
     </script>
 </body>
 

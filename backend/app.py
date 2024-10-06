@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 from controllers import LinearDiscriminant, RandomColors, Capture  # Importando diretamente do pacote controllers
 import os
+import shutil
+from itertools import combinations
 import pandas as pd
 
 # Carregar variáveis de ambiente
@@ -13,9 +15,15 @@ port = os.getenv('PORT', 5000)
 app = Flask(__name__)
 
 # Variáveis globais
-capture = Capture()  # Inicialize como instância da classe Capture
+capture = Capture()
 colors = RandomColors
-linearDiscriminant = LinearDiscriminant
+linearDiscriminant = LinearDiscriminant()
+
+def prepare_directory(directory):
+    if os.path.exists(directory):
+        shutil.rmtree(directory)
+    os.makedirs(directory)
+
 
 # Rotas
 @app.route('/api', methods=['GET'])
@@ -31,7 +39,39 @@ def getData():
 
 @app.route('/api/lineardiscriminant', methods=['GET'])
 def get_linear_discriminant():
-    return jsonify({"message": "Modelo LinearDiscriminant criado"})
+    global capture, linearDiscriminant
+    if capture.data is not None:
+        linearDiscriminant.setData(capture.x_train, capture.y_train)
+        predictions = linearDiscriminant.fit(capture.x_test)
+        model = linearDiscriminant.model.transpose().to_dict()
+        train = predictions.transpose().to_dict()
+        
+        directory = 'linearDiscriminant'
+        # Prepare o diretório para salvar os plots
+        prepare_directory(directory)
+
+        precision = linearDiscriminant.pressure(capture.y_test, predictions, capture.classColumn).tolist()
+
+        # Gera plots para cada par de colunas
+        columns = list(capture.x_test.columns)
+        plots = []
+        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = linearDiscriminant.plot(['#FF0000', '#00FF00', '#0000FF'], col1, col2, predictions, f'{idx}',directory)
+            plots.append(f'{plot_path}')
+        
+        response_data = {
+            "message": "Modelo LinearDiscriminant criado",
+            "Model": model,
+            "Train": train,
+            "Pressicion": precision,
+            "Plots": plots
+        }
+
+        print("Response Data:", response_data)
+        return jsonify(response_data)
+    else:
+        return jsonify({"message": "Invalid data"}), 400
+
 
 # Definir a pasta de upload
 UPLOAD_FOLDER = 'files/'
@@ -46,18 +86,25 @@ def upload_file():
     file = request.files['file']
     if file.filename == '':
         return jsonify({"message": "No selected file"}), 400
-    # Obtenha a extensão do arquivo
+    
+    # Pega a extensão do arquivo
     file_extension = os.path.splitext(file.filename)[1]
-    allowed_extensions = {'.txt', '.csv', '.json', '.xlsx'}
+    allowed_extensions = {'.txt', '.csv', '.json', '.xlsx', '.xls'}
 
     if file and file_extension in allowed_extensions:
-        # Defina o nome fixo e preserve a extensão do arquivo
+        # Define o nome fixo e preserve a extensão do arquivo
         fixed_filename = 'data' + file_extension  
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], fixed_filename)
         file.save(filepath)
 
-        # Inicializar a instância da classe `Capture` e usar setData
-        capture.setData(filepath, file_extension)
+        # Captura os valores de classColumn e testSize
+        classColumn = request.form['classColumn']
+        # Converte para um valor de 0 a 1
+        testSize = float(request.form['testSize']) / 100  
+
+        # Inicializa a instância da classe `Capture` e usar setData e shareData
+        capture.setData(filepath, classColumn, file_extension)
+        capture.shareData(classColumn, testSize)
 
         return jsonify({"message": "File successfully uploaded", "filename": fixed_filename, "data": capture.getData().to_dict(orient='records')}), 200
     else:

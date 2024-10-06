@@ -6,11 +6,11 @@ from sklearn.metrics import confusion_matrix
 
 class LinearDiscriminant:
      #agrupando dados
-    def __init__(self,x_train, y_train):
+    def __init__(self):
         #Dados de treinamento
-        self.train = self.train(x_train, y_train)
+        self.model = None
         # lista de classes definidos no treinamento
-        self.typeClass = self.train.index.tolist()
+        self.typeClass = None
 
     #agrupando dados
     def train(self, x_train, y_train):
@@ -39,9 +39,9 @@ class LinearDiscriminant:
 
             # tirando Species
             x = np.array(row)
-
+            
             # captura das medias do treinamento
-            for i in self.train.values:
+            for i in self.model.values:
                 prediction = self.norma_euclidiana(x, i)
                 results.append(prediction)
 
@@ -62,15 +62,22 @@ class LinearDiscriminant:
         return dataResult
     
     # Acerto
-    def pressure(y_test,result):
-        matrixConfusion = confusion_matrix(y_test['Species'], result['Prediction'])
-        
-        #Resultado em matriz
+    @staticmethod
+    def pressure(y_test, result, classColumn):
+        if 'Prediction' not in result.columns:
+            return "Coluna 'Prediction' não encontrada em result"
+        matrixConfusion = confusion_matrix(y_test.to_frame(name=classColumn), result['Prediction'])
         return matrixConfusion
 
-    def plot(self, colors, columnX, columnY, x_test):
-        #Copia dos dados de teste
-        dataResult =  x_test.copy()
+    def plot(self, colors, columnX, columnY, x_test, index,directory):
+        dataResult = x_test.copy()
+
+        # Verifique se 'Prediction' está presente no DataFrame
+        if 'Prediction' not in dataResult.columns:
+            raise KeyError("A coluna 'Prediction' não está presente em dataResult")
+
+        # Use o backend "Agg" para evitar problemas de GUI
+        plt.switch_backend('Agg')
 
         # Criar uma grade de pontos
         x_min, x_max = dataResult[columnX].min() - 1, dataResult[columnX].max() + 1
@@ -78,7 +85,7 @@ class LinearDiscriminant:
         xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01))
 
         # Calcular a distância aos centroides
-        centroids = self.train[[columnX, columnY]].values
+        centroids = self.model[[columnX, columnY]].values
         distances = np.zeros((xx.shape[0], xx.shape[1], centroids.shape[0]))
         for i, centroid in enumerate(centroids):
             distances[:, :, i] = np.sqrt((xx - centroid[0])**2 + (yy - centroid[1])**2)
@@ -89,47 +96,44 @@ class LinearDiscriminant:
         # Plotar resultados
         plt.figure(figsize=(10, 6))
 
-        # Filtrando, colocando legenda com sua classe e sua devida cor
-        for index, tipo in enumerate(self.typeClass):
+        for idx, tipo in enumerate(self.typeClass):
             plt.scatter(
                 dataResult[dataResult['Prediction'] == tipo][columnX],
                 dataResult[dataResult['Prediction'] == tipo][columnY],
-                color=colors[index],
+                color=colors[idx],
                 alpha=0.8,
                 label=tipo
             )
 
-        # Plotar a superfície de separação
         plt.contourf(xx, yy, Z, alpha=0.2, colors=colors, levels=[-0.5, 0.5, 1.5, 2.5])
+        plt.scatter(self.model[columnX], self.model[columnY], c='black', marker='x', s=100, label='Centroides')
 
-        # Plotar centroides (médias da característica desejada)
-        plt.scatter(self.train[columnX], self.train[columnY], c='black', marker='x', s=100, label='Centroides')
-
-        plt.title('Classificação por Distância com 3 Classes')
+        plt.title(f'Classificação por Distância com 3 Classes - Plot {index}')
         plt.xlabel(columnX)
         plt.ylabel(columnY)
         plt.legend()
         plt.grid(True)
 
-        #resultado da imagem
-        return plt.show()
+        image_path = f'{directory}/plot_{index}.png'
+        plt.savefig(image_path)
+        plt.close()
+        return image_path
     
     def getData(self):
-        return self.train
+        return self.model
     
     def setData(self,x_train, y_train):
         #Dados de treinamento
-        self.train = self.train(x_train, y_train)
+        self.model = self.train(x_train, y_train)
         # lista de classes definidos no treinamento
-        self.typeClass = self.train.index.tolist()
-
-        return
+        self.typeClass = self.model.index.tolist()
 
 
     # Multiplicação entre as caracteristicas
+    @staticmethod
     def multiplicacao(arrayA, arrayB):
         result = 0
-        for i in range(arrayA.size):
+        for i in range(len(arrayA)):
             result += arrayA[i] * arrayB[i]
         return result
 
@@ -138,8 +142,10 @@ class LinearDiscriminant:
     # calculo: di(x)=x^t*mean-1/2*mean^t*mean
 
     def norma_euclidiana(self, x, mean):
+        # Substitui NaNs por 0.0
+        x = np.nan_to_num(x)  
+        mean = np.nan_to_num(mean)  
+
         p1 =  self.multiplicacao(x,mean)
         p2 =  -0.5*np.array(self.multiplicacao(mean,mean))
         return p1+p2
-    def apresentacao():
-        return "oi, LinearDiscriminant"
