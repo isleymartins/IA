@@ -20,7 +20,7 @@
     <div id="images"></div>
 
     <script>
-        const BACK = 'http://127.0.0.1:5000';
+        const BACK = 'localhost:5000';
 
         function uploadFile() {
             const formData = new FormData();
@@ -54,7 +54,7 @@
                 .then(data => {
                     const imagesDiv = document.getElementById('images');
                     imagesDiv.innerHTML = ''; // Limpa as imagens existentes
-
+                    console.log(data)
                     data.Plots.forEach(imagePath => {
                         const img = document.createElement('img');
                         img.src = `${BACK}/${imagePath}`;

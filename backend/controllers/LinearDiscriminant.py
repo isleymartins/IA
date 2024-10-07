@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
+from flask import send_file, jsonify
+import io
 
 class LinearDiscriminant:
      #agrupando dados
@@ -63,13 +65,13 @@ class LinearDiscriminant:
     
     # Acerto
     @staticmethod
-    def pressure(y_test, result, classColumn):
+    def pressure(y_test, result, feature):
         if 'Prediction' not in result.columns:
             return "Coluna 'Prediction' não encontrada em result"
-        matrixConfusion = confusion_matrix(y_test.to_frame(name=classColumn), result['Prediction'])
+        matrixConfusion = confusion_matrix(y_test.to_frame(name=feature), result['Prediction'])
         return matrixConfusion
 
-    def plot(self, colors, columnX, columnY, x_test, index,directory):
+    def plot(self, colors, columnX, columnY, x_test, index):
         dataResult = x_test.copy()
 
         # Verifique se 'Prediction' está presente no DataFrame
@@ -114,10 +116,17 @@ class LinearDiscriminant:
         plt.legend()
         plt.grid(True)
 
-        image_path = f'{directory}/plot_{index}.png'
+        '''/*image_path = f'{directory}/plot_{index}.png'
         plt.savefig(image_path)
         plt.close()
-        return image_path
+        return image_path'''
+
+        img = io.BytesIO()
+        plt.savefig(img, format='png')
+        plt.close()  # Fecha a figura para liberar memória
+        img.seek(0)
+
+        return send_file(img, mimetype='image/png')
     
     def getData(self):
         return self.model

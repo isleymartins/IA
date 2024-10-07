@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from dotenv import load_dotenv
 from controllers import LinearDiscriminant, RandomColors, Capture  # Importando diretamente do pacote controllers
 import os
@@ -13,6 +14,8 @@ load_dotenv()
 port = os.getenv('PORT', 5000)
 
 app = Flask(__name__)
+
+CORS(app)  # Habilita CORS para todas as rotas
 
 # Variáveis globais
 capture = Capture()
@@ -50,28 +53,46 @@ def get_linear_discriminant():
         # Prepare o diretório para salvar os plots
         prepare_directory(directory)
 
-        precision = linearDiscriminant.pressure(capture.y_test, predictions, capture.classColumn).tolist()
+        precision = linearDiscriminant.pressure(capture.y_test, predictions, capture.feature).tolist()
 
         # Gera plots para cada par de colunas
-        columns = list(capture.x_test.columns)
+        '''columns = list(capture.x_test.columns)
         plots = []
         for idx, (col1, col2) in enumerate(combinations(columns, 2)):
             plot_path = linearDiscriminant.plot(['#FF0000', '#00FF00', '#0000FF'], col1, col2, predictions, f'{idx}',directory)
-            plots.append(f'{plot_path}')
+            plots.append(f'{plot_path}')'''
         
         response_data = {
             "message": "Modelo LinearDiscriminant criado",
             "Model": model,
             "Train": train,
             "Pressicion": precision,
-            "Plots": plots
+            # "Plots": plots
+            # "Plots": linearDiscriminant.plot()
         }
 
         print("Response Data:", response_data)
         return jsonify(response_data)
     else:
         return jsonify({"message": "Invalid data"}), 400
+    
+@app.route('/api/lineardiscriminant', methods=['POST'])
+def get_linear_discriminant_image():
+    global capture, linearDiscriminant
 
+    if capture.data is not None:
+        predictions = linearDiscriminant.fit(capture.x_test)
+
+        # Gera plots para cada par de colunas
+        columns = list(capture.x_test.columns)
+        plots = []
+        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = linearDiscriminant.plot(['#FF0000', '#00FF00', '#0000FF'], col1, col2, predictions, f'{idx}')
+            plots.append(plot_path)
+
+        return {plots}
+    else:
+        return jsonify({"message": "Invalid data"}), 400
 
 # Definir a pasta de upload
 UPLOAD_FOLDER = 'files/'
@@ -98,17 +119,18 @@ def upload_file():
         file.save(filepath)
 
         # Captura os valores de classColumn e testSize
-        classColumn = request.form['classColumn']
+        feature = request.form['feature']
         # Converte para um valor de 0 a 1
-        testSize = float(request.form['testSize']) / 100  
+        testCase = float(request.form['testCase']) / 100  
 
         # Inicializa a instância da classe `Capture` e usar setData e shareData
-        capture.setData(filepath, classColumn, file_extension)
-        capture.shareData(classColumn, testSize)
+        capture.setData(filepath, feature, file_extension)
+        capture.shareData(feature, testCase)
 
         return jsonify({"message": "File successfully uploaded", "filename": fixed_filename, "data": capture.getData().to_dict(orient='records')}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True, port=port)
+    #app.run(debug=True, port=port)
+    app.run(debug=True)
