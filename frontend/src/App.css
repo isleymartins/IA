@@ -27,3 +27,43 @@
 .read-the-docs {
   color: #888;
 }
+.tables{
+  display: flex;
+}
+.container-table {
+  position: static;
+  padding: 2%;
+  overflow-y: scroll;
+  max-height: 65vh;
+  max-width: 90%;
+  border: 0px;
+}
+
+.container-table::-webkit-scrollbar {
+  width: 0px;
+  height: 10px;
+  color: blue;
+  border-radius: 6px;
+}
+.container-table::-webkit-scrollbar-track {
+  border-radius: 8px;
+}
+
+.container-table::-webkit-scrollbar-thumb {
+  background-image: linear-gradient(45deg, red 0%, green 99%);
+  border-radius: 6px;
+}
+@media (max-width: 600px) { /* Ajuste o valor conforme necessário */
+  .container-table {
+    max-height: 81vh;
+    justify-content: flex-end;
+    max-width: 110vw;
+  }
+
+  .container-table::-webkit-scrollbar {
+    width: 10px;
+    height: 0px;
+    background-color: #b2b2b2;
+    border-radius: 6px;
+  }
+}

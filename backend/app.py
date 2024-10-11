@@ -46,9 +46,14 @@ def get_linear_discriminant():
     if capture.data is not None:
         linearDiscriminant.setData(capture.x_train, capture.y_train)
         predictions = linearDiscriminant.fit(capture.x_test)
-        model = linearDiscriminant.model.transpose().to_dict()
-        train = predictions.transpose().to_dict()
-        
+        model = [
+            {f"{capture.feature}": species, **features} 
+            for species, features in linearDiscriminant.model.transpose().items()
+            ]
+        train =   [
+            {**features} 
+            for species, features in predictions.transpose().items()
+            ]
         directory = 'linearDiscriminant'
         # Prepare o diretório para salvar os plots
         prepare_directory(directory)
@@ -76,7 +81,7 @@ def get_linear_discriminant():
     else:
         return jsonify({"message": "Invalid data"}), 400
     
-@app.route('/api/lineardiscriminant', methods=['POST'])
+'''@app.route('/api/lineardiscriminant', methods=['POST'])
 def get_linear_discriminant_image():
     global capture, linearDiscriminant
 
@@ -92,7 +97,7 @@ def get_linear_discriminant_image():
 
         return {plots}
     else:
-        return jsonify({"message": "Invalid data"}), 400
+        return jsonify({"message": "Invalid data"}), 400'''
 
 # Definir a pasta de upload
 UPLOAD_FOLDER = 'files/'

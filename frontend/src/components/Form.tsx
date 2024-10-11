@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import axios from "axios"
 import { apiUrl } from '../../config.ts'
+import { features } from 'process'
 
 interface Form {
   file: File | null
@@ -13,16 +14,44 @@ const Form = () => {
     file: null,
     testCase: 0,
     feature: ''
-  });
+  })
+  const [isClicked, setIsClicked] = useState(false)
+  const [tableTest, setTest] = useState<any[]>([])
+  const [tableModel, setModel] = useState<any[]>([])
+  const [confusionMatrix, setConfusionMatrix] = useState<any[]>([])
+
+  useEffect(() => {
+    if (isClicked) {
+      fetchModel()
+      setIsClicked(false)
+    }
+  }, [isClicked])
+
+  const fetchModel = async () => {
+    try {
+      await axios.get(`${apiUrl}/api/lineardiscriminant`)
+        .then((response: any) => {
+          const { Model, Pressicion, Train } = response.data
+
+          setModel(Model)
+          setTest(Train)
+          Array.isArray(Pressicion) && setConfusionMatrix([...Pressicion])
+
+        })
+
+    } catch (error) {
+      console.error('Error:', error);
+      return
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
     if (name === 'file') {
-      console.log("entrou")
       if (files) {
+
         // O arquivo é acessado aqui
         const selectedFile = files[0]
-        console.log('Arquivo selecionado:', selectedFile);
 
         // O arquivo é armazenado no estado
         setFormData(prevFormData => ({
@@ -58,39 +87,14 @@ const Form = () => {
           'Content-Type': 'multipart/form-data'
         }
       });
-      console.log('Response:', response.data);
-      fetchModel()
-      fetchImages()
+      setIsClicked(true)
+      // console.log('Response:', response.data);
     } catch (error) {
+      setIsClicked(false)
       console.error('Error:', error);
     }
   }
 
-  /*const uploadFile = () => {
-    
-    fetch(`${BACK}/upload`, {
-      method: 'POST',
-      body: formData,
-    })
-      .then(response => response.json())
-      .then(data => {
-        alert(data.message);
-        fetchImages();
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-  }*/
-  const fetchModel = async () => {
-    try {
-      const response = await axios.get(`${apiUrl}/api/lineardiscriminant`);
-
-      console.log('Response:', response.data);
-    } catch (error) {
-      console.error('Error:', error);
-
-    }
-  }
   const fetchImages = async () => {
     try {
       const response = await axios.post(`${apiUrl}/api/lineardiscriminant`);
@@ -98,8 +102,8 @@ const Form = () => {
       if (imagesDiv) {
         imagesDiv.innerHTML = '';
 
-        console.log('Response:', response.data);
-        response.data.Plots.forEach(imagePath => {
+        // console.log('Response:', response.data);
+        response.data.Plots.forEach((imagePath: any) => {
           const img = document.createElement('img');
           img.src = `${apiUrl}/${imagePath}`;
           img.alt = 'Plot Image';
@@ -107,7 +111,7 @@ const Form = () => {
           imagesDiv.appendChild(img);
         });
 
-        console.log('Response:', response.data);
+        //console.log('Response:', response.data);
       }
 
     } catch (error) {
@@ -135,6 +139,8 @@ const Form = () => {
       .catch(error => {
         console.error('Error:', error);
       });*/
+
+  // console.log("!",  tableTest?.length > 0)
   return (
     <>
       <h1> Upload TXT File</h1>
@@ -153,7 +159,7 @@ const Form = () => {
           name="testCase"
           min="1"
           max="100"
-          value={formData.testCase}
+          value={formData.testCase || 30}
           onChange={handleChange}
           required
         />
@@ -162,13 +168,48 @@ const Form = () => {
           type="text"
           id="feature"
           name="feature"
-          value={formData.feature}
+          value={formData.feature || "Species"}
           onChange={handleChange}
           required
         />
         <button type="button" onClick={handleSubmit}>Submit</button>
       </form>
       <div id="images" />
+      <div className="tables">
+        {
+          tableModel?.length > 0 && <table>
+            <thead>
+              <tr>
+              {Object.keys(tableModel[0])?.map((column, index) => <td><td key={index}>{column}</td></td>)}
+              </tr>
+            </thead>
+            <tbody>
+              {
+
+                tableModel?.map((item, index) => <tr key={index}>
+                  {Object.keys(item).map((key) => <td>{item[key]}</td>)}
+                </tr>
+                )
+              }
+            </tbody>
+          </table>
+        }
+        {
+          tableTest?.length > 0 && <div className='container-table'><table>
+            <thead>
+              {Object.keys(tableTest[0])?.map((column, index) => <td><td key={index}>{column}</td></td>)}
+            </thead>
+            <tbody>
+              {
+                tableTest?.map((item, index) => <tr key={index}>
+                  {Object.keys(item).map((key) => <td>{item[key]}</td>)}
+                </tr>
+                )
+              }
+            </tbody>
+          </table>      </div>
+        }
+      </div>
 
     </>
   )
