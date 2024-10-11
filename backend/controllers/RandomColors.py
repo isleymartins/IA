@@ -20,4 +20,3 @@ class RandomColors:
     
     def setData(self, numColor):
         self.colors = self.randomColors(numColor)
-        return    

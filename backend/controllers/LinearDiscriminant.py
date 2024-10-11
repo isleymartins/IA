@@ -58,7 +58,7 @@ class LinearDiscriminant:
 
             # acrescentando novas colunas com a suposta Species
             dataResult.loc[_,'Prediction'] = self.typeClass[index]
-            dataResult.loc[_,'Prediction Mean'] = prediction
+            #dataResult.loc[_,'Prediction Mean'] = prediction
         
         #Resultado com dados em dataframe
         return dataResult

@@ -1,13 +1,70 @@
 import { useEffect, useState } from 'react'
 import axios from "axios"
 import { apiUrl } from '../../config.ts'
+import TableData from './Table.tsx'
 import { features } from 'process'
+import { makeStyles } from '@mui/styles';
+
+import * as React from 'react';
+import AppBar from '@mui/material/AppBar';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 
 interface Form {
   file: File | null
   testCase: number
   feature: string
 }
+
+interface ModelPrediction {
+  name: string
+  model: any[]
+  test: any[]
+  confusionMatrix: number[]
+}
+interface TabPanelProps {
+  children?: React.ReactNode;
+  dir?: string;
+  index: number;
+  value: number;
+}
+const useStyles = makeStyles({
+  bar: {
+    background: 'rgba(36, 36, 36, 1)',
+    color: 'rgba(255, 255, 255, 0.87)',
+    fontWeight: 'bold'
+  }
+});
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+ 
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`full-width-tabpanel-${index}`}
+      aria-labelledby={`full-width-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{p: 2 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
+function a11yProps(index: number) {
+  return {
+    id: `full-width-tab-${index}`,
+    'aria-controls': `full-width-tabpanel-${index}`,
+  };
+}
+
 
 const Form = () => {
   const [formData, setFormData] = useState<Form>({
@@ -16,9 +73,17 @@ const Form = () => {
     feature: ''
   })
   const [isClicked, setIsClicked] = useState(false)
+  const [modelPrediction, setModelPrediction] = useState<ModelPrediction[]>([])
   const [tableTest, setTest] = useState<any[]>([])
   const [tableModel, setModel] = useState<any[]>([])
   const [confusionMatrix, setConfusionMatrix] = useState<any[]>([])
+
+  const [value, setValue] = React.useState(0);
+  const classes = useStyles();
+
+  const handleChangeBar = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+  };
 
   useEffect(() => {
     if (isClicked) {
@@ -29,21 +94,51 @@ const Form = () => {
 
   const fetchModel = async () => {
     try {
-      await axios.get(`${apiUrl}/api/lineardiscriminant`)
-        .then((response: any) => {
-          const { Model, Pressicion, Train } = response.data
+      const response = await axios.get(`${apiUrl}/api/lineardiscriminant`);
+      const { Model, Pressicion, Train } = response.data;
 
-          setModel(Model)
-          setTest(Train)
-          Array.isArray(Pressicion) && setConfusionMatrix([...Pressicion])
+      setModelPrediction(prevState => {
+        const existingModelIndex = prevState.findIndex(models => models.name === "Distancia Minima");
 
-        })
+        if (existingModelIndex !== -1) {
+          // Substituir o modelo existente
+          const updatedModels = [...prevState];
+          updatedModels[existingModelIndex] = {
+            name: "Distancia Minima",
+            model: Model,
+            test: Train,
+            confusionMatrix: Array.isArray(Pressicion) ? [...Pressicion] : []
+          };
+          return updatedModels;
+        } else {
+          // Adicionar novo modelo
+          return [
+            ...prevState,
+            {
+              name: "Distancia Minima",
+              model: Model,
+              test: Train,
+              confusionMatrix: Array.isArray(Pressicion) ? [...Pressicion] : []
+            },{
+              name: "Distancia Minima",
+              model: Model,
+              test: Train,
+              confusionMatrix: Array.isArray(Pressicion) ? [...Pressicion] : []
+            }
+          ];
+        }
+      });
+
+      setModel(Model);
+      setTest(Train);
+      Array.isArray(Pressicion) && setConfusionMatrix([...Pressicion]);
 
     } catch (error) {
       console.error('Error:', error);
-      return
     }
-  }
+  };
+
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
@@ -174,42 +269,66 @@ const Form = () => {
         />
         <button type="button" onClick={handleSubmit}>Submit</button>
       </form>
-      <div id="images" />
-      <div className="tables">
-        {
-          tableModel?.length > 0 && <table>
-            <thead>
-              <tr>
-              {Object.keys(tableModel[0])?.map((column, index) => <td><td key={index}>{column}</td></td>)}
-              </tr>
-            </thead>
-            <tbody>
-              {
+      <Box sx={{ borderImageSlice: 'red', width: '70vw' }}  >
+        <AppBar position={"relative"}
+        className={classes.bar}>
+          <Tabs
+            value={value}
+            onChange={handleChangeBar}
+            indicatorColor="secondary"
+            textColor="inherit"
+            variant="fullWidth"/**/
+            aria-label="full width tabs example"
 
-                tableModel?.map((item, index) => <tr key={index}>
-                  {Object.keys(item).map((key) => <td>{item[key]}</td>)}
-                </tr>
-                )
-              }
-            </tbody>
-          </table>
-        }
+            centered
+          >
+            {
+              modelPrediction.map((item, index) => (
+                <Tab label={item.name} {...a11yProps(index)} key={index} />
+              ))
+
+            }
+          </Tabs>
+        </AppBar>
         {
-          tableTest?.length > 0 && <div className='container-table'><table>
-            <thead>
-              {Object.keys(tableTest[0])?.map((column, index) => <td><td key={index}>{column}</td></td>)}
-            </thead>
-            <tbody>
-              {
-                tableTest?.map((item, index) => <tr key={index}>
-                  {Object.keys(item).map((key) => <td>{item[key]}</td>)}
-                </tr>
-                )
-              }
-            </tbody>
-          </table>      </div>
+          modelPrediction.map((item, index) => (
+            <TabPanel value={value} index={index} >
+              <div className="container-table">
+                <div className="tables" >
+                  {tableModel?.length > 0 && <TableData row={item.model} feature={formData.feature} title={"Modelo"} />}
+                </div>
+                <div className="tables" >
+                  {confusionMatrix?.length > 0 && <TableData row={item.confusionMatrix} feature={formData.feature} title={"Matriz de confusão"} />}
+                </div>
+                <div className="tables">
+                  {tableTest?.length > 0 && <TableData row={item.test} feature={formData.feature} title={"Dados de Teste"} />}
+                </div>
+              </div>
+            </TabPanel>
+          ))
+
         }
-      </div>
+        {/*<TabPanel value={value} index={0} >
+          <div className="container-table">
+            <div className="tables" >
+              {tableModel?.length > 0 && <TableData row={tableModel} feature={formData.feature} title={"Modelo"} />}
+            </div>
+            <div className="tables" >
+              {confusionMatrix?.length > 0 && <TableData row={confusionMatrix} feature={formData.feature} title={"Matriz de confusão"} />}
+            </div>
+            <div className="tables">
+              {tableTest?.length > 0 && <TableData row={tableTest} feature={formData.feature} title={"Dados de Teste"} />}
+            </div>
+          </div>
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          Item Two
+        </TabPanel>
+        <TabPanel value={value} index={2}>
+          Item Three
+        </TabPanel>*/}
+      </Box>
+      <div id="images" />
 
     </>
   )

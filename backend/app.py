@@ -76,7 +76,7 @@ def get_linear_discriminant():
             # "Plots": linearDiscriminant.plot()
         }
 
-        print("Response Data:", response_data)
+        print("Response Data:", model)
         return jsonify(response_data)
     else:
         return jsonify({"message": "Invalid data"}), 400
