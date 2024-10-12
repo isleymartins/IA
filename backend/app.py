@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 from controllers import LinearDiscriminant, RandomColors, Capture  # Importando diretamente do pacote controllers
@@ -19,7 +19,7 @@ CORS(app)  # Habilita CORS para todas as rotas
 
 # Variáveis globais
 capture = Capture()
-colors = RandomColors
+colors = RandomColors()
 linearDiscriminant = LinearDiscriminant()
 
 def prepare_directory(directory):
@@ -42,62 +42,52 @@ def getData():
 
 @app.route('/api/lineardiscriminant', methods=['GET'])
 def get_linear_discriminant():
-    global capture, linearDiscriminant
+    global capture, linearDiscriminant, colors
+
     if capture.data is not None:
         linearDiscriminant.setData(capture.x_train, capture.y_train)
         predictions = linearDiscriminant.fit(capture.x_test)
+
         model = [
-            {f"{capture.feature}": species, **features} 
+            {f"{capture.feature}": species, **features}
             for species, features in linearDiscriminant.model.transpose().items()
-            ]
-        train =   [
-            {**features} 
+        ]
+
+        train = [
+            {**features}
             for species, features in predictions.transpose().items()
-            ]
+        ]
+
         directory = 'linearDiscriminant'
-        # Prepare o diretório para salvar os plots
         prepare_directory(directory)
 
         precision = linearDiscriminant.pressure(capture.y_test, predictions, capture.feature).tolist()
 
-        # Gera plots para cada par de colunas
-        '''columns = list(capture.x_test.columns)
+        columns = list(capture.x_test.columns)
         plots = []
+
+        colors.setData(len(capture.y_train.unique()))
+
         for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            plot_path = linearDiscriminant.plot(['#FF0000', '#00FF00', '#0000FF'], col1, col2, predictions, f'{idx}',directory)
-            plots.append(f'{plot_path}')'''
-        
+            plot_path = linearDiscriminant.plot(colors.getData(), col1, col2, predictions, f'{idx}')
+            plots.append(f'linearDiscriminant/{os.path.basename(plot_path)}')
+
         response_data = {
             "message": "Modelo LinearDiscriminant criado",
             "Model": model,
             "Train": train,
-            "Pressicion": precision,
-            # "Plots": plots
-            # "Plots": linearDiscriminant.plot()
+            "Precision": precision,
+            "Plots": plots
         }
 
-        print("Response Data:", model)
         return jsonify(response_data)
     else:
         return jsonify({"message": "Invalid data"}), 400
-    
-'''@app.route('/api/lineardiscriminant', methods=['POST'])
-def get_linear_discriminant_image():
-    global capture, linearDiscriminant
 
-    if capture.data is not None:
-        predictions = linearDiscriminant.fit(capture.x_test)
+@app.route('/api/plots/<model>/<path:path>', methods=['GET'])
+def send_plot(model, path):
+    return send_from_directory(model, path)
 
-        # Gera plots para cada par de colunas
-        columns = list(capture.x_test.columns)
-        plots = []
-        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            plot_path = linearDiscriminant.plot(['#FF0000', '#00FF00', '#0000FF'], col1, col2, predictions, f'{idx}')
-            plots.append(plot_path)
-
-        return {plots}
-    else:
-        return jsonify({"message": "Invalid data"}), 400'''
 
 # Definir a pasta de upload
 UPLOAD_FOLDER = 'files/'
@@ -131,8 +121,8 @@ def upload_file():
         # Inicializa a instância da classe `Capture` e usar setData e shareData
         capture.setData(filepath, feature, file_extension)
         capture.shareData(feature, testCase)
-
-        return jsonify({"message": "File successfully uploaded", "filename": fixed_filename, "data": capture.getData().to_dict(orient='records')}), 200
+        models =[""]
+        return jsonify({"message": "File successfully uploaded", "filename": fixed_filename, "data": capture.getData().to_dict(orient='records'), "models":""}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400
 

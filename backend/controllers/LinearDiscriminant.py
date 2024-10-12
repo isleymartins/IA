@@ -73,7 +73,7 @@ class LinearDiscriminant:
 
     def plot(self, colors, columnX, columnY, x_test, index):
         dataResult = x_test.copy()
-
+        print(colors)
         # Verifique se 'Prediction' está presente no DataFrame
         if 'Prediction' not in dataResult.columns:
             raise KeyError("A coluna 'Prediction' não está presente em dataResult")
@@ -116,17 +116,20 @@ class LinearDiscriminant:
         plt.legend()
         plt.grid(True)
 
-        '''/*image_path = f'{directory}/plot_{index}.png'
+        directory = 'linearDiscriminant'
+    
+        image_path = f'{directory}/plot_{index}.png'
         plt.savefig(image_path)
         plt.close()
-        return image_path'''
+        return image_path
 
-        img = io.BytesIO()
+        '''/*img = io.BytesIO()
         plt.savefig(img, format='png')
         plt.close()  # Fecha a figura para liberar memória
         img.seek(0)
 
-        return send_file(img, mimetype='image/png')
+        return send_file(img, mimetype='image/png')'''
+
     
     def getData(self):
         return self.model
