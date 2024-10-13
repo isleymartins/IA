@@ -6,7 +6,7 @@ from sklearn.metrics import confusion_matrix
 from flask import send_file, jsonify
 import io
 
-class LinearDiscriminant:
+class MinimumDistanceClassifier:
      #agrupando dados
     def __init__(self):
         #Dados de treinamento
@@ -73,7 +73,7 @@ class LinearDiscriminant:
 
     def plot(self, colors, columnX, columnY, x_test, index):
         dataResult = x_test.copy()
-        print(colors)
+        
         # Verifique se 'Prediction' está presente no DataFrame
         if 'Prediction' not in dataResult.columns:
             raise KeyError("A coluna 'Prediction' não está presente em dataResult")
@@ -116,7 +116,7 @@ class LinearDiscriminant:
         plt.legend()
         plt.grid(True)
 
-        directory = 'linearDiscriminant'
+        directory = 'minimumDistanceClassifier'
     
         image_path = f'{directory}/plot_{index}.png'
         plt.savefig(image_path)

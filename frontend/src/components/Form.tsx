@@ -92,20 +92,20 @@ const FormComponent = () => {
   //Pega todos os dados do modelo espercifico no backEnd
   const fetchModel = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/api/lineardiscriminant`)
-      const { Model, Pressicion, Train, Plots } = response.data
+      const response = await axios.get(`${apiUrl}/api/minimumdistanceclassifier`)
+      const { Name, Model, Precision, Train, Plots } = response.data
 
       setModelPrediction((prevState: ModelPrediction[]) => {
-        const existingModelIndex = prevState.findIndex(models => models.name === "Distancia Minima")
+        const existingModelIndex = prevState.findIndex(models => models.name === Name)
         if (existingModelIndex !== -1) {
           // Substituir o modelo existente
           const updatedModels = [...prevState]
           updatedModels[existingModelIndex] = {
-            name: "Distancia Minima",
+            name: Name,
             model: Model,
             test: Train,
             plots: Plots,
-            confusionMatrix: Array.isArray(Pressicion) ? [...Pressicion] : []
+            confusionMatrix: Array.isArray(Precision) ? [...Precision] : []
           }
           return updatedModels;
         } else {
@@ -113,11 +113,11 @@ const FormComponent = () => {
           return [
             ...prevState,
             {
-              name: "Distancia Minima",
+              name: Name,
               model: Model,
               test: Train,
               plots: Plots,
-              confusionMatrix: Array.isArray(Pressicion) ? [...Pressicion] : []
+              confusionMatrix: Array.isArray(Precision) ? [...Precision] : []
             }
           ]
         }

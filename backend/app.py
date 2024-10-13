@@ -1,14 +1,14 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-from dotenv import load_dotenv
-from controllers import LinearDiscriminant, RandomColors, Capture  # Importando diretamente do pacote controllers
+#from dotenv import load_dotenv
+from controllers import MinimumDistanceClassifier, BayesClassifier, RandomColors, Capture  # Importando diretamente do pacote controllers
 import os
 import shutil
 from itertools import combinations
 import pandas as pd
 
 # Carregar variáveis de ambiente
-load_dotenv()
+#load_dotenv()
 
 # Porta do localhost
 port = os.getenv('PORT', 5000)
@@ -20,7 +20,8 @@ CORS(app)  # Habilita CORS para todas as rotas
 # Variáveis globais
 capture = Capture()
 colors = RandomColors()
-linearDiscriminant = LinearDiscriminant()
+minimumDistanceClassifier = MinimumDistanceClassifier()
+bayesClassifier = BayesClassifier()
 
 def prepare_directory(directory):
     if os.path.exists(directory):
@@ -40,17 +41,17 @@ def getData():
         return jsonify({"message": "No data available"}), 400
     return jsonify(capture.getData().to_dict(orient='records'))
 
-@app.route('/api/lineardiscriminant', methods=['GET'])
+@app.route('/api/minimumdistanceclassifier', methods=['GET'])
 def get_linear_discriminant():
-    global capture, linearDiscriminant, colors
+    global capture, minimumDistanceClassifier, colors
 
     if capture.data is not None:
-        linearDiscriminant.setData(capture.x_train, capture.y_train)
-        predictions = linearDiscriminant.fit(capture.x_test)
+        minimumDistanceClassifier.setData(capture.x_train, capture.y_train)
+        predictions = minimumDistanceClassifier.fit(capture.x_test)
 
         model = [
             {f"{capture.feature}": species, **features}
-            for species, features in linearDiscriminant.model.transpose().items()
+            for species, features in minimumDistanceClassifier.model.transpose().items()
         ]
 
         train = [
@@ -58,22 +59,64 @@ def get_linear_discriminant():
             for species, features in predictions.transpose().items()
         ]
 
-        directory = 'linearDiscriminant'
+        directory = 'minimumDistanceClassifier'
         prepare_directory(directory)
 
-        precision = linearDiscriminant.pressure(capture.y_test, predictions, capture.feature).tolist()
+        precision = minimumDistanceClassifier.pressure(capture.y_test, predictions, capture.feature).tolist()
 
         columns = list(capture.x_test.columns)
         plots = []
 
-        colors.setData(len(capture.y_train.unique()))
-
         for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            plot_path = linearDiscriminant.plot(colors.getData(), col1, col2, predictions, f'{idx}')
-            plots.append(f'linearDiscriminant/{os.path.basename(plot_path)}')
+            plot_path = minimumDistanceClassifier.plot(colors.getData(), col1, col2, predictions, f'{idx}')
+            plots.append(f'{directory}/{os.path.basename(plot_path)}')
 
         response_data = {
             "message": "Modelo LinearDiscriminant criado",
+            "Name": "Distancia Minima",
+            "Model": model,
+            "Train": train,
+            "Precision": precision,
+            "Plots": plots
+        }
+
+        return jsonify(response_data)
+    else:
+        return jsonify({"message": "Invalid data"}), 400
+    
+@app.route('/api/bayesclassifier', methods=['GET'])
+def get_bayesClassifier():
+    global capture, bayesClassifier, colors
+
+    if capture.data is not None:
+        bayesClassifier.setData(capture.x_train, capture.y_train)
+        predictions = bayesClassifier.fit(capture.x_test)
+
+        model = [
+            {f"{capture.feature}": species, **features}
+            for species, features in bayesClassifier.model.transpose().items()
+        ]
+
+        train = [
+            {**features}
+            for species, features in predictions.transpose().items()
+        ]
+
+        directory = 'bayesClassifier'
+        prepare_directory(directory)
+
+        precision = bayesClassifier.pressure(capture.y_test, predictions, capture.feature).tolist()
+
+        columns = list(capture.x_test.columns)
+        plots = []
+
+        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = bayesClassifier.plot(colors.getData(), col1, col2, predictions, f'{idx}')
+            plots.append(f'{directory}/{os.path.basename(plot_path)}')
+
+        response_data = {
+            "message": "Modelo LinearDiscriminant criado",
+            "Name": "Classificador de Bayes",
             "Model": model,
             "Train": train,
             "Precision": precision,
@@ -121,8 +164,10 @@ def upload_file():
         # Inicializa a instância da classe `Capture` e usar setData e shareData
         capture.setData(filepath, feature, file_extension)
         capture.shareData(feature, testCase)
+        colors.setData(len(capture.y_train.unique()))
+        
         models =[""]
-        return jsonify({"message": "File successfully uploaded", "filename": fixed_filename, "data": capture.getData().to_dict(orient='records'), "models":""}), 200
+        return jsonify({"message": "File successfully uploaded", "filename": fixed_filename, "data": capture.getData().to_dict(orient='records'), "models": models}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400
 
