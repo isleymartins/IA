@@ -74,6 +74,7 @@ const FormComponent = () => {
     feature: ''
   });
   const [isClicked, setIsClicked] = useState(false);
+  const [directory, setDirectory] = useState<String[]>([])
   const [modelPrediction, setModelPrediction] = useState<ModelPrediction[]>([])
   const [value, setValue] = React.useState(0);
 
@@ -89,48 +90,54 @@ const FormComponent = () => {
     }
   }, [isClicked])
 
-  //Pega todos os dados do modelo espercifico no backEnd
   const fetchModel = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/api/minimumdistanceclassifier`)
-      const { Name, Model, Precision, Train, Plots } = response.data
+        for (const model of directory) {
+            const response = await axios.get(`${apiUrl}/api/${model}`);
+            const { Name, Model, Precision, Train, Plots } = response.data;
 
-      setModelPrediction((prevState: ModelPrediction[]) => {
-        const existingModelIndex = prevState.findIndex(models => models.name === Name)
-        if (existingModelIndex !== -1) {
-          // Substituir o modelo existente
-          const updatedModels = [...prevState]
-          updatedModels[existingModelIndex] = {
-            name: Name,
-            model: Model,
-            test: Train,
-            plots: Plots,
-            confusionMatrix: Array.isArray(Precision) ? [...Precision] : []
-          }
-          return updatedModels;
-        } else {
-          // Adicionar novo modelo
-          return [
-            ...prevState,
-            {
-              name: Name,
-              model: Model,
-              test: Train,
-              plots: Plots,
-              confusionMatrix: Array.isArray(Precision) ? [...Precision] : []
-            }
-          ]
+            setModelPrediction((prevState: ModelPrediction[]) => {
+                const existingModelIndex = prevState.findIndex(models => models.name === Name);
+                
+                if (existingModelIndex !== -1) {
+                    // Substituir o modelo existente
+                    const updatedModels = [...prevState];
+                    updatedModels[existingModelIndex] = {
+                        name: Name,
+                        model: Model,
+                        test: Train,
+                        plots: Plots,
+                        confusionMatrix: Array.isArray(Precision) ? [...Precision] : []
+                    };
+                    return updatedModels;
+                } else {
+                    // Adicionar novo modelo
+                    return [
+                        ...prevState,
+                        {
+                            name: Name,
+                            model: Model,
+                            test: Train,
+                            plots: Plots,
+                            confusionMatrix: Array.isArray(Precision) ? [...Precision] : []
+                        }
+                    ];
+                }
+                
+            });
+          fetchImage(Plots, Name);
+            
         }
-      })
-      fetchImage(Plots)
-      console.log(modelPrediction)
+        
+        console.log(modelPrediction);
     } catch (error) {
-      console.error('Error:', error);
+        console.error('Error:', error);
     }
-  }
-  const fetchImage = async (paths: String[]) => {
+};
+
+  const fetchImage = async (paths: String[], name: String) => {
     try {
-      const imagesDiv = document.getElementById('images');
+      const imagesDiv = document.getElementById(`images-${name}`);
       if (imagesDiv) {
         imagesDiv.innerHTML = '';  // Limpa as imagens existentes
 
@@ -188,7 +195,8 @@ const FormComponent = () => {
           }
         });
         setIsClicked(true);
-
+        console.log(response.data.models)
+        setDirectory(response.data.models)
       } catch (error) {
         setIsClicked(false);
         console.error('Error:', error);
@@ -240,6 +248,7 @@ const FormComponent = () => {
           </AppBar>
           {modelPrediction.map((item, index) => (
             <TabPanel value={value} index={index} key={index}>
+              
               <div className="container-table">
                 <div className="tables">
                   {item.model?.length > 0 && <TableData row={item.model} feature={formData.feature} title={"Modelo"} />}
@@ -250,7 +259,7 @@ const FormComponent = () => {
                 <div className="tables">
                   {item.test?.length > 0 && <TableData row={item.test} feature={formData.feature} title={"Dados de Teste"} />}
                 </div>
-                <div id="images" />
+                <div id={`images-${item.name}`} />
               </div>
             </TabPanel>
           ))}

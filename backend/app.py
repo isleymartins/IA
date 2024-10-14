@@ -28,7 +28,11 @@ def prepare_directory(directory):
         shutil.rmtree(directory)
     os.makedirs(directory)
 
-
+def convert_to_serializable(model):
+    for item in model:
+        item['mean'] = [float(x) for x in item['mean']]
+        item['matrix_cov'] = item['matrix_cov'].tolist()
+    return model
 # Rotas
 @app.route('/api', methods=['GET'])
 def home():
@@ -46,7 +50,7 @@ def get_linear_discriminant():
     global capture, minimumDistanceClassifier, colors
 
     if capture.data is not None:
-        minimumDistanceClassifier.setData(capture.x_train, capture.y_train)
+        minimumDistanceClassifier.setData(capture.x_train, capture.y_train, capture.feature)
         predictions = minimumDistanceClassifier.fit(capture.x_test)
 
         model = [
@@ -85,23 +89,23 @@ def get_linear_discriminant():
         return jsonify({"message": "Invalid data"}), 400
     
 @app.route('/api/bayesclassifier', methods=['GET'])
+
+
 def get_bayesClassifier():
     global capture, bayesClassifier, colors
 
     if capture.data is not None:
-        bayesClassifier.setData(capture.x_train, capture.y_train)
+        bayesClassifier.setData(capture.x_train, capture.y_train, capture.feature)
         predictions = bayesClassifier.fit(capture.x_test)
 
-        model = [
-            {f"{capture.feature}": species, **features}
-            for species, features in bayesClassifier.model.transpose().items()
-        ]
+        model =  convert_to_serializable(bayesClassifier.model)
 
+        print("model",model)
         train = [
             {**features}
             for species, features in predictions.transpose().items()
         ]
-
+        print("train",train)
         directory = 'bayesClassifier'
         prepare_directory(directory)
 
@@ -115,7 +119,7 @@ def get_bayesClassifier():
             plots.append(f'{directory}/{os.path.basename(plot_path)}')
 
         response_data = {
-            "message": "Modelo LinearDiscriminant criado",
+            "message": "Modelo bayesClassifier criado",
             "Name": "Classificador de Bayes",
             "Model": model,
             "Train": train,
@@ -166,7 +170,7 @@ def upload_file():
         capture.shareData(feature, testCase)
         colors.setData(len(capture.y_train.unique()))
         
-        models =[""]
+        models =["minimumdistanceclassifier","bayesclassifier"]
         return jsonify({"message": "File successfully uploaded", "filename": fixed_filename, "data": capture.getData().to_dict(orient='records'), "models": models}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400

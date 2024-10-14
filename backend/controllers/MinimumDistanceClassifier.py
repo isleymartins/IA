@@ -15,12 +15,12 @@ class MinimumDistanceClassifier:
         self.typeClass = None
 
     #agrupando dados
-    def train(self, x_train, y_train):
+    def train(self, x_train, y_train, feature):
         #agrupando dados de treinamento
         dataGroup = pd.concat([x_train.reset_index(drop=True), y_train.reset_index(drop=True)], axis=1)
 
         # media dos dados de treinamento
-        dataMean = dataGroup.groupby('Species').mean()
+        dataMean = dataGroup.groupby(feature).mean()
 
         # Criando array com as medias numPy
         # mean = np.array(dataMean)
@@ -134,9 +134,9 @@ class MinimumDistanceClassifier:
     def getData(self):
         return self.model
     
-    def setData(self,x_train, y_train):
+    def setData(self,x_train, y_train, feature):
         #Dados de treinamento
-        self.model = self.train(x_train, y_train)
+        self.model = self.train(x_train, y_train, feature)
         # lista de classes definidos no treinamento
         self.typeClass = self.model.index.tolist()
 

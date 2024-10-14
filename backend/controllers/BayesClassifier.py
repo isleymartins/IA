@@ -16,70 +16,69 @@ class BayesClassifier:
         self.typeClass = None
 
     #agrupando dados
-    def train(self, x_train, y_train):
+    def train(self, x_train, y_train, feature):
         # Responsável por guardar média, desvio padrão e probabilidade
         trainingMatrix = []
-
         # DataFrame que combina x_train e y_train
         dataGroup = pd.concat([x_train.reset_index(drop=True), y_train.reset_index(drop=True)], axis=1)
-
         # Agrupando o DataFrame com base nos valores da coluna 'Species'
-        grouped = dataGroup.groupby('Species')
-
+        grouped = dataGroup.groupby(feature)
         # Tamanho da amostra total
         tamanho_amostra_total = len(dataGroup)
-
         # Iterando sobre cada grupo
         for species, group in grouped:
             # Obtendo o número de linhas e colunas
             lin, col = group.shape
-
             # Inicializando listas para guardar média
             media = []
-
             # Iterando sobre cada característica (coluna)
-            for feature in range(col-1):  # -1 para não incluir a coluna 'Species'
-                feature_values = group.iloc[:, feature]  # Obtemos todos os valores da coluna da característica
+            for feature_index in range(col-1):  # -1 para não incluir a coluna 'Species'
+                feature_values = group.iloc[:, feature_index]  # Obtemos todos os valores da coluna da característica
                 media.append(feature_values.mean())  # Calculando a média
-
             matriz_cov = np.cov(group.iloc[:, :-1], rowvar=False)
-
             # Tamanho da amostra do grupo atual
             tamanho_amostra = len(group)
             probClasse = tamanho_amostra / tamanho_amostra_total
-
             # Adicionando os resultados à matriz de treinamento
-            trainingMatrix.append([media, probClasse, matriz_cov])
-
+            trainingMatrix.append({
+                "mean": media,
+                "probClass": probClasse,
+                "matrix_cov": matriz_cov,
+                feature: species
+            })
         # Exibindo a matriz de treinamento
-        print(trainingMatrix)
         return trainingMatrix
-    
-    #Predizer
-    def fit(self,x_test):
-        # tabela extraida do teste 30% sem Species
-        data =  x_test.copy()
 
-       #Predizer
+    #Predizer
     def fit(self, x_test):
-        # tabela extraida do teste 30% sem Species
+        # tabela extraida do teste
         data = x_test.copy()
+        
         # Função de predição
         def prediction(x_test, trainingMatrix):
             results = []
             for x in x_test:
                 discriminants = []
                 for class_params in trainingMatrix:
-                    mean, prior, cov = class_params
-                    d = discriminant(x, prior, np.array(mean), cov)
+                    mean = class_params["mean"]
+                    prior = class_params["probClass"]
+                    cov = class_params["matrix_cov"]
+                    d = self.discriminant(x, prior, np.array(mean), cov)
                     discriminants.append(d)
                 results.append(np.argmax(discriminants) + 1)
             return results
+        
         # Fazendo a predição
         predData = prediction(np.array(data), self.model)
-        result = pd.DataFrame(np.column_stack((np.array(data), predData)), columns=["Sepal length","Sepal width","Petal length","Petal width","Prediction"])
-        #Resultado com dados em dataframe
+        
+        # Extrair colunas de x_test e adicionar "Prediction"
+        columns = list(data.columns) + ["Prediction"]
+        
+        # Resultado com dados em dataframe
+        result = pd.DataFrame(np.column_stack((np.array(data), predData)), columns=columns)
+
         return result
+
     
     # Acerto
     @staticmethod
@@ -91,49 +90,38 @@ class BayesClassifier:
 
     def plot(self, colors, columnX, columnY, x_test, index):
         result = x_test.copy()
-
-        # Verifique se 'Prediction' está presente no DataFrame
         if 'Prediction' not in result.columns:
-            raise KeyError("A coluna 'Prediction' não está presente em dataResult")
+            raise KeyError("A coluna 'Prediction' não está presente em result")
 
-        # Use o backend "Agg" para evitar problemas de GUI
         plt.switch_backend('Agg')
-
-        # Agrupando por 'Species'
+        
         groupedPred = result.groupby('Prediction')
-
-        # Criando o gráfico
+        
         plt.figure(figsize=(10, 6))
-
-        tipos = list(substituicoes.keys())
-
-        # Iterando sobre cada grupo e plotando
+        tipos = list(groupedPred.groups.keys())  # Pegando os valores únicos em 'Prediction'
+        
         for species, group in groupedPred:
             media = group['Sepal length'].mean()
             desvio_padrao = group['Sepal length'].std()
-
-            # Plotando a distribuição
+            
             plt.hist(group['Sepal length'], density=True, alpha=0.6, label=f'{tipos[int(species)-1]} (μ={media:.2f}, σ={desvio_padrao:.2f})')
-
-            # Adicionando a curva da distribuição normal
+            
             xmin, xmax = plt.xlim()
             x = np.linspace(xmin, xmax, 100)
-
-            # Padrão gaussiano
+            
             p = np.exp(-0.5 * ((x - media) / desvio_padrao)**2) / (desvio_padrao * np.sqrt(2 * np.pi))
-
             plt.plot(x, p, linewidth=2)
-
+        
         plt.xlabel('Sepal length')
         plt.ylabel('Density')
         plt.legend()
         plt.grid(True)
-
+        
         directory = 'bayesClassifier'
-    
         image_path = f'{directory}/plot_{index}.png'
         plt.savefig(image_path)
         plt.close()
+        
         return image_path
 
         '''/*img = io.BytesIO()
@@ -147,13 +135,13 @@ class BayesClassifier:
     def getData(self):
         return self.model
     
-    def setData(self,x_train, y_train):
+    def setData(self,x_train, y_train, feature):
         #Dados de treinamento
-        self.model = self.train(x_train, y_train)
+        self.model = self.train(x_train, y_train, feature)
         # lista de classes definidos no treinamento
-        self.typeClass = self.model.index.tolist()
+        self.typeClass = self.model
 
-
+    @staticmethod
     # Função para calcular a distância discriminante dj(x) para a classe j
     def discriminant(x, prior, mean, cov):
         # Calcular a ln(P(Cj)) - logaritmo da probabilidade a priori da classe
@@ -169,24 +157,5 @@ class BayesClassifier:
         # Retornar o valor da função discriminante
         return term1 + term2 + term3
 
-    # x = caracteristicas ->[x,x,x,x]
-    # mean = medias das caracteristicas->[mean,mean,mean,mean]
-    # calculo: di(x)=x^t*mean-1/2*mean^t*mean
-
-    '''def norma_euclidiana(self, x, mean):
-        # Substitui NaNs por 0.0
-        x = np.nan_to_num(x)  
-        mean = np.nan_to_num(mean)  
-
-        p1 =  self.multiplicacao(x,mean)
-        p2 =  -0.5*np.array(self.multiplicacao(mean,mean))
-        return p1+p2
-
-    # Multiplicação entre as caracteristicas
-    @staticmethod
-    def multiplicacao(arrayA, arrayB):
-        result = 0
-        for i in range(len(arrayA)):
-            result += arrayA[i] * arrayB[i]
-        return result'''
+    
     

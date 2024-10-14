@@ -25,18 +25,44 @@ class Capture:
         data = extensions[file_type](path)
         return data
     
-    def shareData(self,feature, testCase):
+    def shareData(self, feature, testCase):
         # Certifique-se de que self.data é um DataFrame e que feature está presente
         if self.data is None or not isinstance(self.data, pd.DataFrame):
             raise TypeError("self.data não é um DataFrame")
         if feature not in self.data.columns:
             raise ValueError(f"A coluna {feature} não está presente no DataFrame")
-        
+                
         # Selecionando todas as colunas exceto classColumn
         x = self.data.loc[:, self.data.columns != feature]
-        y = self.data[feature]
+        y, self.classifications = self.replacement(self.data[feature])
+        
         # Definindo a limitação de treino e teste
         self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(x, y, test_size=testCase, random_state=42, stratify=y)
+
+    @staticmethod
+    def replacement(dataFeature):
+        # Fazendo uma cópia dos dados
+        data = dataFeature.copy()
+        
+        # Obtendo valores únicos
+        classifications = data.unique()
+        
+        # Criação do dicionário de substituições
+        substitution = {value: idx + 1 for idx, value in enumerate(classifications)}
+        
+        # Mapeando os valores de acordo com o dicionário
+        data = data.map(substitution)
+        
+        return data, substitution
+
+
+    #substitui a classificação em numero
+    def transcribe(self, dataFeature):
+        data = dataFeature.copy()
+        # Mapeamento dos valores na coluna especificada
+        data = data.map(self.classifications)
+                
+        return data
     
     #Retorna todos os dados
     def getData(self):
