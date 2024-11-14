@@ -22,7 +22,7 @@ interface ModelPrediction {
   model: any[]
   test: any[]
   confusionMatrix: number[]
-  plots: string[]
+  plots: Promise<any>[]
 }
 
 interface TabPanelProps {
@@ -76,6 +76,7 @@ const FormComponent = () => {
   const [isClicked, setIsClicked] = useState(false);
   const [directory, setDirectory] = useState<String[]>([])
   const [modelPrediction, setModelPrediction] = useState<ModelPrediction[]>([])
+  // const [images, setImages] = useState<any[]>([])
   const [value, setValue] = React.useState(0);
 
 
@@ -92,52 +93,55 @@ const FormComponent = () => {
 
   const fetchModel = async () => {
     try {
-        for (const model of directory) {
-            const response = await axios.get(`${apiUrl}/api/${model}`);
-            const { Name, Model, Precision, Train, Plots } = response.data;
+      for (const model of directory) {
+        const response = await axios.get(`${apiUrl}/api/${model}`);
+        const { Name, Model, Precision, Train, Plots } = response.data;
 
-            setModelPrediction((prevState: ModelPrediction[]) => {
-                const existingModelIndex = prevState.findIndex(models => models.name === Name);
-                
-                if (existingModelIndex !== -1) {
-                    // Substituir o modelo existente
-                    const updatedModels = [...prevState];
-                    updatedModels[existingModelIndex] = {
-                        name: Name,
-                        model: Model,
-                        test: Train,
-                        plots: Plots,
-                        confusionMatrix: Array.isArray(Precision) ? [...Precision] : []
-                    };
-                    return updatedModels;
-                } else {
-                    // Adicionar novo modelo
-                    return [
-                        ...prevState,
-                        {
-                            name: Name,
-                            model: Model,
-                            test: Train,
-                            plots: Plots,
-                            confusionMatrix: Array.isArray(Precision) ? [...Precision] : []
-                        }
-                    ];
-                }
-                
-            });
-          fetchImage(Plots, Name);
-            
-        }
-        
-        console.log(modelPrediction);
+        const blobs: any[] = await fetchImage(Plots)
+
+        setModelPrediction((prevState: ModelPrediction[]) => {
+          const existingModelIndex = prevState.findIndex(models => models.name === Name);
+
+          if (existingModelIndex !== -1) {
+            // Substituir o modelo existente
+            const updatedModels = [...prevState];
+            updatedModels[existingModelIndex] = {
+              name: Name,
+              model: Model,
+              test: Train,
+              plots: blobs,
+              confusionMatrix: Array.isArray(Precision) ? [...Precision] : []
+            };
+            return updatedModels;
+          } else {
+            // Adicionar novo modelo
+            return [
+              ...prevState,
+              {
+                name: Name,
+                model: Model,
+                test: Train,
+                plots: blobs,
+                confusionMatrix: Array.isArray(Precision) ? [...Precision] : []
+              }
+            ];
+          }
+
+        });
+        //;
+
+      }
+
+      console.log(modelPrediction);
     } catch (error) {
-        console.error('Error:', error);
+      console.error('Error:', error);
     }
-};
+  };
 
-  const fetchImage = async (paths: String[], name: String) => {
+  const fetchImage = async (paths: String[]) => {
     try {
-      const imagesDiv = document.getElementById(`images-${name}`);
+      /*const imagesDiv = document.getElementById(`images-${index}`)
+      console.log(`images-${index}`)
       if (imagesDiv) {
         imagesDiv.innerHTML = '';  // Limpa as imagens existentes
 
@@ -147,126 +151,138 @@ const FormComponent = () => {
           const img = document.createElement('img');
           const url = URL.createObjectURL(blob);
 
-          img.src = url;
-          img.alt = 'Plot Image';
-          img.style.width = '30vw';  // Ajuste a largura conforme necessário
+          img.src = url
+          img.alt = 'Plot Image'
+          img.style.width = '30vw'
 
-          imagesDiv.appendChild(img);
-        }
+          imagesDiv.appendChild(img)
+          console.log(`div ${imagesDiv}`)
+
+        }*/
+      const images = []
+      for (const path of paths) {
+        const response = await axios.get(`${apiUrl}/api/plots/${path}`, { responseType: 'blob' })
+        const blob = response.data; images.push(blob)
       }
+      return images
     } catch (error) {
       console.error('Error:', error);
 
     }
   }
-    //Dados capturados pelo formulario
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value, files } = e.target;
-      if (name === 'file') {
-        if (files) {
-          const selectedFile = files[0];
-          setFormData(prevFormData => ({
-            ...prevFormData,
-            file: selectedFile
-          }));
-        }
-      } else {
+  //Dados capturados pelo formulario
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, files } = e.target;
+    if (name === 'file') {
+      if (files) {
+        const selectedFile = files[0];
         setFormData(prevFormData => ({
           ...prevFormData,
-          [name]: value
+          file: selectedFile
         }));
       }
-    };
+    } else {
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        [name]: value
+      }));
+    }
+  };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      const data = new FormData();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const data = new FormData();
 
-      for (const key in formData) {
-        if (formData[key as keyof Form] !== null) {
-          data.append(key, formData[key as keyof Form] as string | Blob);
+    for (const key in formData) {
+      if (formData[key as keyof Form] !== null) {
+        data.append(key, formData[key as keyof Form] as string | Blob);
+      }
+    }
+
+    try {
+      const response = await axios.post(`${apiUrl}/upload`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
-      }
+      });
+      setIsClicked(true);
+      console.log(response.data.models)
+      setDirectory(response.data.models)
+    } catch (error) {
+      setIsClicked(false);
+      console.error('Error:', error);
+    }
+  };
 
-      try {
-        const response = await axios.post(`${apiUrl}/upload`, data, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-        setIsClicked(true);
-        console.log(response.data.models)
-        setDirectory(response.data.models)
-      } catch (error) {
-        setIsClicked(false);
-        console.error('Error:', error);
-      }
-    };
+  return (
+    <>
+      <h1> Upload TXT File</h1>
+      <form id="uploadForm">
+        <input type="file" id="fileInput" name="file" onChange={handleChange} />
+        <label>Porcentagem de teste:</label>
+        <input
+          type="number"
+          id="testSize"
+          name="testCase"
+          min="1"
+          max="100"
+          value={formData.testCase || 30}
+          onChange={handleChange}
+          required
+        />
+        <label htmlFor="feature">Feature:</label>
+        <input
+          type="text"
+          id="feature"
+          name="feature"
+          value={formData.feature || "Species"}
+          onChange={handleChange}
+          required
+        />
+        <button type="button" onClick={handleSubmit}>Submit</button>
+      </form>
+      <Box sx={{ borderImageSlice: 'red', width: '70vw' }}>
+        <AppBar position="relative" /*className={classes.bar}*/>
+          <Tabs
+            value={value}
+            onChange={handleChangeBar}
+            indicatorColor="secondary"
+            textColor="inherit"
+            variant="fullWidth"
+            aria-label="full width tabs example"
+            centered
+          >
+            {modelPrediction.map((item, index) => (
+              <Tab label={item.name} {...a11yProps(index)} key={index} />
+            ))}
+          </Tabs>
+        </AppBar>
+        {modelPrediction.map((item, index) => (
+          <TabPanel value={value} index={index} key={index}>
 
-    return (
-      <>
-        <h1> Upload TXT File</h1>
-        <form id="uploadForm">
-          <input type="file" id="fileInput" name="file" onChange={handleChange} />
-          <label>Porcentagem de teste:</label>
-          <input
-            type="number"
-            id="testSize"
-            name="testCase"
-            min="1"
-            max="100"
-            value={formData.testCase || 30}
-            onChange={handleChange}
-            required
-          />
-          <label htmlFor="feature">Feature:</label>
-          <input
-            type="text"
-            id="feature"
-            name="feature"
-            value={formData.feature || "Species"}
-            onChange={handleChange}
-            required
-          />
-          <button type="button" onClick={handleSubmit}>Submit</button>
-        </form>
-        <Box sx={{ borderImageSlice: 'red', width: '70vw' }}>
-          <AppBar position="relative" /*className={classes.bar}*/>
-            <Tabs
-              value={value}
-              onChange={handleChangeBar}
-              indicatorColor="secondary"
-              textColor="inherit"
-              variant="fullWidth"
-              aria-label="full width tabs example"
-              centered
-            >
-              {modelPrediction.map((item, index) => (
-                <Tab label={item.name} {...a11yProps(index)} key={index} />
-              ))}
-            </Tabs>
-          </AppBar>
-          {modelPrediction.map((item, index) => (
-            <TabPanel value={value} index={index} key={index}>
-              
-              <div className="container-table">
-                <div className="tables">
-                  {item.model?.length > 0 && <TableData row={item.model} feature={formData.feature} title={"Modelo"} />}
-                </div>
-                <div className="tables">
-                  {item.confusionMatrix?.length > 0 && <TableData row={item.confusionMatrix} feature={formData.feature} title={"Matriz de confusão"} />}
-                </div>
-                <div className="tables">
-                  {item.test?.length > 0 && <TableData row={item.test} feature={formData.feature} title={"Dados de Teste"} />}
-                </div>
-                <div id={`images-${item.name}`} />
+            <div className="container-table">
+              <div className="tables">
+                {item.model?.length > 0 && <TableData row={item.model} feature={formData.feature} title={"Modelo"} />}
               </div>
-            </TabPanel>
-          ))}
-        </Box>
-        
-      </>
+              <div className="tables">
+                {item.confusionMatrix?.length > 0 && <TableData row={item.confusionMatrix} feature={formData.feature} title={"Matriz de confusão"} />}
+              </div>
+              <div className="tables">
+                {item.test?.length > 0 && <TableData row={item.test} feature={formData.feature} title={"Dados de Teste"} />}
+              </div>
+              <div id={`images-${index}`}>
+                {item.plots?.map((blob: any, imgIndex: number) => {
+                  const url = URL.createObjectURL(blob)
+                  return <img key={imgIndex} src={url} alt="Plot Image" style={{ width: '30vw' }} />
+                })}
+              </div>
+            </div>
+          </TabPanel>
+        ))}
+      </Box>
 
-    )
-  }
-  export default FormComponent
+    </>
+
+  )
+}
+export default FormComponent
