@@ -48,25 +48,32 @@ class Capture:
         classifications = data.unique()
         
         # Criação do dicionário de substituições
-        substitution = {value: idx + 1 for idx, value in enumerate(classifications)}
-        
+        substitution = {value: int(idx + 1) for idx, value in enumerate(classifications)}
+
         # Mapeando os valores de acordo com o dicionário
         data = data.map(substitution)
-        
-        return data, substitution
+
+        transcribe = {value: key for key, value in substitution.items()}
+
+        return data, transcribe
 
 
     #substitui a classificação em numero
     def transcribe(self, dataFeature):
         data = dataFeature.copy()
+        data = data.astype(int)
+        #subs = {value: key for key, value in self.classifications.items()}
         # Mapeamento dos valores na coluna especificada
         data = data.map(self.classifications)
                 
         return data
-    
+
     #Retorna todos os dados
     def getData(self):
         return self.data
+    
+    def getClassifications(self):
+        return self.classifications
     
     def setData(self, path, feature,file_type):
         self.data = self.extract(path, file_type)

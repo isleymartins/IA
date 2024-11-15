@@ -23,16 +23,20 @@ colors = RandomColors()
 minimumDistanceClassifier = MinimumDistanceClassifier()
 bayesClassifier = BayesClassifier()
 
+#Cria/remove a pasta do diretorio e seus elementos
 def prepare_directory(directory):
     if os.path.exists(directory):
         shutil.rmtree(directory)
     os.makedirs(directory)
 
-def convert_to_serializable(model):
+#Nescessario para ser possivel passar dados via json
+def convert_to_serializable(model, capture):
     for item in model:
         item['mean'] = [float(x) for x in item['mean']]
         item['matrix_cov'] = item['matrix_cov'].tolist()
+        item[capture.feature] = capture.transcribe(pd.Series([item[capture.feature]]))[0]
     return model
+
 # Rotas
 @app.route('/api', methods=['GET'])
 def home():
@@ -45,18 +49,31 @@ def getData():
         return jsonify({"message": "No data available"}), 400
     return jsonify(capture.getData().to_dict(orient='records'))
 
+#Rota do algoritmo distancia minima
 @app.route('/api/minimumdistanceclassifier', methods=['GET'])
 def get_linear_discriminant():
     global capture, minimumDistanceClassifier, colors
-
+    #Verifica se tem dados
     if capture.data is not None:
+        #Faz o modelo com os dados
         minimumDistanceClassifier.setData(capture.x_train, capture.y_train, capture.feature)
+        #Predicao
         predictions = minimumDistanceClassifier.fit(capture.x_test)
 
+        #Passar as classes em nome original
+        predictions["Prediction"] = capture.transcribe(predictions["Prediction"])
+        
+        #Passar as classes em nome original sem afetar o modelo
+        modelTradution = capture.transcribe(pd.Series(minimumDistanceClassifier.getData().index))
+        minimumDistanceClassifierModel = minimumDistanceClassifier.getData().copy()
+        minimumDistanceClassifierModel.index = modelTradution
+
+        print(modelTradution)
         model = [
             {f"{capture.feature}": species, **features}
-            for species, features in minimumDistanceClassifier.model.transpose().items()
+            for species, features in minimumDistanceClassifierModel.transpose().items()
         ]
+        # Aplicando a tradução reversa ao modelo for item in model: item["Species"] = obj.reverse_transcribe(pd.Series([item["Species"]]))[0]
 
         train = [
             {**features}
@@ -66,13 +83,14 @@ def get_linear_discriminant():
         directory = 'minimumDistanceClassifier'
         prepare_directory(directory)
 
-        precision = minimumDistanceClassifier.pressure(capture.y_test, predictions, capture.feature).tolist()
+        #Matriz de comfusao
+        precision = minimumDistanceClassifier.pressure(capture.transcribe(capture.y_test), predictions, capture.feature).tolist()
 
         columns = list(capture.x_test.columns)
         plots = []
 
         for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            plot_path = minimumDistanceClassifier.plot(colors.getData(), col1, col2, predictions, f'{idx}')
+            plot_path = minimumDistanceClassifier.plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}')
             plots.append(f'{directory}/{os.path.basename(plot_path)}')
 
         response_data = {
@@ -83,39 +101,44 @@ def get_linear_discriminant():
             "Precision": precision,
             "Plots": plots
         }
-
+        
         return jsonify(response_data)
     else:
         return jsonify({"message": "Invalid data"}), 400
-    
-@app.route('/api/bayesclassifier', methods=['GET'])
 
+#Rota do algoritmo do classificador de Bayes
+@app.route('/api/bayesclassifier', methods=['GET'])
 
 def get_bayesClassifier():
     global capture, bayesClassifier, colors
-
+    #Verifica se tem dados
     if capture.data is not None:
+        #Faz o modelo com os dados
         bayesClassifier.setData(capture.x_train, capture.y_train, capture.feature)
+        #Predicao
         predictions = bayesClassifier.fit(capture.x_test)
+        predictions["Prediction"]=capture.transcribe(predictions["Prediction"])
 
-        model =  convert_to_serializable(bayesClassifier.model)
 
-        print("model",model)
+        model =  convert_to_serializable(bayesClassifier.getData(),capture)
+      
         train = [
             {**features}
             for species, features in predictions.transpose().items()
-        ]
-        print("train",train)
+        ] 
+        
         directory = 'bayesClassifier'
         prepare_directory(directory)
 
-        precision = bayesClassifier.pressure(capture.y_test, predictions, capture.feature).tolist()
-
+        precision = bayesClassifier.pressure(capture.transcribe(capture.y_test), predictions, capture.feature).tolist()
+        print("model",train)
+        #Possibilidade de itens para combinação
         columns = list(capture.x_test.columns)
         plots = []
 
+        #combinação dos atributos
         for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            plot_path = bayesClassifier.plot(colors.getData(), col1, col2, predictions, f'{idx}')
+            plot_path = bayesClassifier.plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}')
             plots.append(f'{directory}/{os.path.basename(plot_path)}')
 
         response_data = {
@@ -131,6 +154,7 @@ def get_bayesClassifier():
     else:
         return jsonify({"message": "Invalid data"}), 400
 
+#Rotas de vizualizacao de plots
 @app.route('/api/plots/<model>/<path:path>', methods=['GET'])
 def send_plot(model, path):
     return send_from_directory(model, path)

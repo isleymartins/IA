@@ -3,8 +3,6 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
-from flask import send_file, jsonify
-import io
 
 class MinimumDistanceClassifier:
      #agrupando dados
@@ -71,7 +69,7 @@ class MinimumDistanceClassifier:
         matrixConfusion = confusion_matrix(y_test.to_frame(name=feature), result['Prediction'])
         return matrixConfusion
 
-    def plot(self, colors, columnX, columnY, x_test, index):
+    def plot(self, colors, columnX, columnY, x_test, classifications, index):
         dataResult = x_test.copy()
         
         # Verifique se 'Prediction' está presente no DataFrame
@@ -98,7 +96,8 @@ class MinimumDistanceClassifier:
         # Plotar resultados
         plt.figure(figsize=(10, 6))
 
-        for idx, tipo in enumerate(self.typeClass):
+        for idx, (key, tipo) in enumerate(classifications.items()):
+            print("model",idx, "tipo", tipo)
             plt.scatter(
                 dataResult[dataResult['Prediction'] == tipo][columnX],
                 dataResult[dataResult['Prediction'] == tipo][columnY],
@@ -110,7 +109,7 @@ class MinimumDistanceClassifier:
         plt.contourf(xx, yy, Z, alpha=0.2, colors=colors, levels=[-0.5, 0.5, 1.5, 2.5])
         plt.scatter(self.model[columnX], self.model[columnY], c='black', marker='x', s=100, label='Centroides')
 
-        plt.title(f'Classificação por Distância com 3 Classes - Plot {index}')
+        plt.title(f'Classificação por Distância Minima com {len(colors)} Classes - Plot {index}')
         plt.xlabel(columnX)
         plt.ylabel(columnY)
         plt.legend()

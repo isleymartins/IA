@@ -88,9 +88,9 @@ class BayesClassifier:
         matrixConfusion = confusion_matrix(y_test.to_frame(name=feature), result['Prediction'])
         return matrixConfusion
 
-    def plot(self, colors, columnX, columnY, x_test, index):
+    def plot(self, colors, columnX, columnY, x_test, classifications, index):
         result = x_test.copy()
-        if 'Prediction' not in result.columns:
+        '''if 'Prediction' not in result.columns:
             raise KeyError("A coluna 'Prediction' não está presente em result")
 
         plt.switch_backend('Agg')
@@ -115,6 +115,52 @@ class BayesClassifier:
         plt.xlabel('Sepal length')
         plt.ylabel('Density')
         plt.legend()
+        plt.grid(True)'''
+
+
+        # Use o backend "Agg" para evitar problemas de GUI
+        plt.switch_backend('Agg')
+
+        # Criar uma grade de pontos
+        x_min, x_max = result[columnX].min() - 1, result[columnX].max() + 1
+        y_min, y_max = result[columnY].min() - 1, result[columnY].max() + 1
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01))
+
+        # Calcular a função discriminante para cada ponto da grade
+        Z = np.zeros(xx.shape)
+        for i in range(xx.shape[0]):
+            for j in range(xx.shape[1]):
+                point = np.array([xx[i, j], yy[i, j]])
+                discriminant_values = []
+                for key, tipo in classifications.items():
+                    prior = priors[key]
+                    mean = means[key]
+                    cov = covariances[key]
+                    d_value = discriminant(point, prior, mean, cov)
+                    discriminant_values.append(d_value)
+                    # +1 para corresponder às chaves de classificação 
+                    Z[i, j] = np.argmax(discriminant_values) + 1
+                    
+        # Plotar a grade de decisão
+        plt.contourf(xx, yy, Z, alpha=0.3, cmap=plt.cm.Paired)
+
+        # Plotar resultados
+        plt.figure(figsize=(10, 6))
+
+        for idx, (key, tipo) in enumerate(classifications.items()):
+            print("model",idx, "tipo", tipo)
+            plt.scatter(
+                result[result['Prediction'] == tipo][columnX],
+                result[result['Prediction'] == tipo][columnY],
+                color=colors[idx],
+                alpha=0.8,
+                label=tipo
+            )
+
+        plt.title(f'Classificação por Bayes com {len(colors)} Classes - Plot {index}')
+        plt.xlabel(columnX)
+        plt.ylabel(columnY)
+        plt.legend()
         plt.grid(True)
         
         directory = 'bayesClassifier'
@@ -134,7 +180,7 @@ class BayesClassifier:
     
     def getData(self):
         return self.model
-    
+
     def setData(self,x_train, y_train, feature):
         #Dados de treinamento
         self.model = self.train(x_train, y_train, feature)

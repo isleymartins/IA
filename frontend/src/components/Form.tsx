@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import axios from "axios";
 import { apiUrl } from '../../config.ts';
 import TableData from './Table.tsx';
-import { makeStyles } from '@mui/styles';
-
 import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Tabs from '@mui/material/Tabs';
@@ -22,7 +20,7 @@ interface ModelPrediction {
   model: any[]
   test: any[]
   confusionMatrix: number[]
-  plots: Promise<any>[]
+  plots: Blob[]
 }
 
 interface TabPanelProps {
@@ -76,7 +74,6 @@ const FormComponent = () => {
   const [isClicked, setIsClicked] = useState(false);
   const [directory, setDirectory] = useState<String[]>([])
   const [modelPrediction, setModelPrediction] = useState<ModelPrediction[]>([])
-  // const [images, setImages] = useState<any[]>([])
   const [value, setValue] = React.useState(0);
 
 
@@ -97,7 +94,7 @@ const FormComponent = () => {
         const response = await axios.get(`${apiUrl}/api/${model}`);
         const { Name, Model, Precision, Train, Plots } = response.data;
 
-        const blobs: any[] = await fetchImage(Plots)
+        const blobs = await fetchImage(Plots);
 
         setModelPrediction((prevState: ModelPrediction[]) => {
           const existingModelIndex = prevState.findIndex(models => models.name === Name);
@@ -139,36 +136,18 @@ const FormComponent = () => {
   };
 
   const fetchImage = async (paths: String[]) => {
-    try {
-      /*const imagesDiv = document.getElementById(`images-${index}`)
-      console.log(`images-${index}`)
-      if (imagesDiv) {
-        imagesDiv.innerHTML = '';  // Limpa as imagens existentes
 
-        for (const path of paths) {
-          const response = await axios.get(`${apiUrl}/api/plots/${path}`, { responseType: 'blob' });
-          const blob = response.data;
-          const img = document.createElement('img');
-          const url = URL.createObjectURL(blob);
-
-          img.src = url
-          img.alt = 'Plot Image'
-          img.style.width = '30vw'
-
-          imagesDiv.appendChild(img)
-          console.log(`div ${imagesDiv}`)
-
-        }*/
-      const images = []
-      for (const path of paths) {
+    const images = []
+    for (const path of paths) {
+      try {
         const response = await axios.get(`${apiUrl}/api/plots/${path}`, { responseType: 'blob' })
         const blob = response.data; images.push(blob)
+      } catch (error) {
+        console.error('Erro ao buscar o blob:', error)
       }
-      return images
-    } catch (error) {
-      console.error('Error:', error);
-
     }
+    return images;
+
   }
   //Dados capturados pelo formulario
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
