@@ -85,8 +85,26 @@ class BayesClassifier:
     def pressure(y_test, result, feature):
         if 'Prediction' not in result.columns:
             return "Coluna 'Prediction' não encontrada em result"
+        
+        # Calcular a matriz de confusão
         matrixConfusion = confusion_matrix(y_test.to_frame(name=feature), result['Prediction'])
-        return matrixConfusion
+        
+        # Obter os tipos de classes
+        classes = sorted(set(y_test.to_frame(name=feature)[feature]) | set(result['Prediction']))
+        
+        # Criar um DataFrame com rótulos nas linhas e colunas
+        df_matrixConfusion = pd.DataFrame(matrixConfusion, index=classes, columns=classes)
+        
+        # Adicionar uma coluna dinamicamente usando a variável feature para representar os índices
+        df_matrixConfusion[feature] = df_matrixConfusion.index
+        
+        # Reordenar colunas para que a variável feature seja a primeira coluna
+        df_matrixConfusion = df_matrixConfusion[[feature] + [col for col in df_matrixConfusion.columns if col != feature]]
+        
+        # Converter o DataFrame para uma lista de listas
+        matrix_list = [df_matrixConfusion.columns.tolist()] + df_matrixConfusion.reset_index(drop=True).values.tolist()
+
+        return matrix_list
 
     def plot(self, colors, columnX, columnY, x_test, classifications, index):
         result = x_test.copy()
@@ -118,6 +136,7 @@ class BayesClassifier:
         plt.grid(True)'''
 
 
+        result = x_test.copy()
         # Use o backend "Agg" para evitar problemas de GUI
         plt.switch_backend('Agg')
 
@@ -126,29 +145,11 @@ class BayesClassifier:
         y_min, y_max = result[columnY].min() - 1, result[columnY].max() + 1
         xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01))
 
-        # Calcular a função discriminante para cada ponto da grade
-        Z = np.zeros(xx.shape)
-        for i in range(xx.shape[0]):
-            for j in range(xx.shape[1]):
-                point = np.array([xx[i, j], yy[i, j]])
-                discriminant_values = []
-                for key, tipo in classifications.items():
-                    prior = priors[key]
-                    mean = means[key]
-                    cov = covariances[key]
-                    d_value = discriminant(point, prior, mean, cov)
-                    discriminant_values.append(d_value)
-                    # +1 para corresponder às chaves de classificação 
-                    Z[i, j] = np.argmax(discriminant_values) + 1
-                    
-        # Plotar a grade de decisão
-        plt.contourf(xx, yy, Z, alpha=0.3, cmap=plt.cm.Paired)
-
         # Plotar resultados
         plt.figure(figsize=(10, 6))
 
         for idx, (key, tipo) in enumerate(classifications.items()):
-            print("model",idx, "tipo", tipo)
+            #print("model",idx, "tipo", tipo)
             plt.scatter(
                 result[result['Prediction'] == tipo][columnX],
                 result[result['Prediction'] == tipo][columnY],
@@ -167,7 +168,6 @@ class BayesClassifier:
         image_path = f'{directory}/plot_{index}.png'
         plt.savefig(image_path)
         plt.close()
-        
         return image_path
 
         '''/*img = io.BytesIO()

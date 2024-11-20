@@ -84,7 +84,7 @@ def get_linear_discriminant():
         prepare_directory(directory)
 
         #Matriz de comfusao
-        precision = minimumDistanceClassifier.pressure(capture.transcribe(capture.y_test), predictions, capture.feature).tolist()
+        precision = minimumDistanceClassifier.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
 
         columns = list(capture.x_test.columns)
         plots = []
@@ -130,8 +130,8 @@ def get_bayesClassifier():
         directory = 'bayesClassifier'
         prepare_directory(directory)
 
-        precision = bayesClassifier.pressure(capture.transcribe(capture.y_test), predictions, capture.feature).tolist()
-        print("model",train)
+        precision = bayesClassifier.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+
         #Possibilidade de itens para combinação
         columns = list(capture.x_test.columns)
         plots = []
