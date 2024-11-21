@@ -14,6 +14,7 @@ class BayesClassifier:
         self.model = None
         # lista de classes definidos no treinamento
         self.typeClass = None
+        self.matrixConfusion = None
 
     #agrupando dados
     def train(self, x_train, y_train, feature):
@@ -81,13 +82,14 @@ class BayesClassifier:
 
     
     # Acerto
-    @staticmethod
-    def pressure(y_test, result, feature):
+    def pressure(self,y_test, result, feature):
         if 'Prediction' not in result.columns:
             return "Coluna 'Prediction' não encontrada em result"
         
         # Calcular a matriz de confusão
         matrixConfusion = confusion_matrix(y_test.to_frame(name=feature), result['Prediction'])
+
+        self.matrixConfusion = matrixConfusion
         
         # Obter os tipos de classes
         classes = sorted(set(y_test.to_frame(name=feature)[feature]) | set(result['Prediction']))
@@ -95,18 +97,17 @@ class BayesClassifier:
         # Criar um DataFrame com rótulos nas linhas e colunas
         df_matrixConfusion = pd.DataFrame(matrixConfusion, index=classes, columns=classes)
         
-        # Adicionar uma coluna dinamicamente usando a variável feature para representar os índices
-        df_matrixConfusion[feature] = df_matrixConfusion.index
+        # Converter o DataFrame para um dicionário onde cada item na lista é um dicionário com as classes como chaves
+        formatted_matrix = [
+            {feature: row, **{col: int(df_matrixConfusion.at[row, col]) for col in classes}} for row in classes
+        ]
         
-        # Reordenar colunas para que a variável feature seja a primeira coluna
-        df_matrixConfusion = df_matrixConfusion[[feature] + [col for col in df_matrixConfusion.columns if col != feature]]
-        
-        # Converter o DataFrame para uma lista de listas
-        matrix_list = [df_matrixConfusion.columns.tolist()] + df_matrixConfusion.reset_index(drop=True).values.tolist()
+        return formatted_matrix
 
-        return matrix_list
 
-    def plot(self, colors, columnX, columnY, x_test, classifications, index):
+
+
+    def plot(self, colors, columnX, columnY, x_test, classifications, index, folder):
         result = x_test.copy()
         '''if 'Prediction' not in result.columns:
             raise KeyError("A coluna 'Prediction' não está presente em result")
@@ -164,20 +165,11 @@ class BayesClassifier:
         plt.legend()
         plt.grid(True)
         
-        directory = 'bayesClassifier'
-        image_path = f'{directory}/plot_{index}.png'
+        image_path = f'{folder}/plot_{index}.png'
         plt.savefig(image_path)
         plt.close()
         return image_path
 
-        '''/*img = io.BytesIO()
-        plt.savefig(img, format='png')
-        plt.close()  # Fecha a figura para liberar memória
-        img.seek(0)
-
-        return send_file(img, mimetype='image/png')'''
-
-    
     def getData(self):
         return self.model
 
@@ -186,6 +178,10 @@ class BayesClassifier:
         self.model = self.train(x_train, y_train, feature)
         # lista de classes definidos no treinamento
         self.typeClass = self.model
+
+    def getMatrizConfusion(self):
+        return self.matrixConfusion
+
 
     @staticmethod
     # Função para calcular a distância discriminante dj(x) para a classe j
