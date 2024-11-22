@@ -40,7 +40,7 @@ const useStyles = makeStyles({
     nestedTable: {
         marginTop: '8px',
         marginBottom: '8px',
-        backgroundColor: 'rgba(36, 36, 36, 0.1)'
+        
     },
     nestedCell: {
         border: '1px solid #404040',
