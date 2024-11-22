@@ -88,64 +88,6 @@ def upload_file():
     else:
         return jsonify({"message": "Invalid file type"}), 400
     
-#Rotas utils
-
-#Rotas de vizualizacao de plots
-@app.route('/api/plots/<model>/<path:path>', methods=['GET'])
-def send_plot(model, path):
-    return send_from_directory(model, path)
-
-#Rotas de metricas
-@app.route('/api/metrics/<model1>/<model2>', methods=['GET'])
-def metrics_mode1(model1, model2):
-    # Verificar se os modelos passados existem no mapeamento
-    if model1.lower() not in model_map or model2.lower() not in model_map:
-        return jsonify({"error": "Model not found"}), 400 
-    # Obter os objetos correspondentes
-    model_1 = model_map[model1.lower()]
-    model_2 = model_map[model2.lower()]
-
-    matrix_confusion1 = model_1.getMatrizConfusion()
-    matrix_confusion2 = model_2.getMatrizConfusion()
-
-    metrics1 = {
-        "producer_accuracy": QualityMetrics.producer_accuracy(matrix_confusion1),
-        "user_accuracy": QualityMetrics.user_accuracy(matrix_confusion1),
-        "global_accuracy": QualityMetrics.global_accuracy(matrix_confusion1),
-        "causal_accuracy": QualityMetrics.causal_accuracy(matrix_confusion1),
-        "kappa_coefficient": QualityMetrics().kappa_coefficient(matrix_confusion1),
-        "var_kappa_coefficient": QualityMetrics.var_kappa_coefficient(matrix_confusion1),
-        "var_kappa_coefficient_advanced": QualityMetrics.var_kappa_coefficient_advanced(matrix_confusion1),
-        "precision": QualityMetrics.precision(matrix_confusion1),
-        "recall": QualityMetrics.recall(matrix_confusion1),
-        "f_score_1/2": QualityMetrics.f_score(0.5, matrix_confusion1),
-        "f_score_1": QualityMetrics.f_score(1, matrix_confusion1),
-        "f_score_2": QualityMetrics.f_score(2, matrix_confusion1)
-    }
-    metrics2 = {
-        "producer_accuracy": QualityMetrics.producer_accuracy(matrix_confusion2),
-        "user_accuracy": QualityMetrics.user_accuracy(matrix_confusion2),
-        "global_accuracy": QualityMetrics.global_accuracy(matrix_confusion2),
-        "causal_accuracy": QualityMetrics.causal_accuracy(matrix_confusion2),
-        "kappa_coefficient": QualityMetrics().kappa_coefficient(matrix_confusion2),
-        "var_kappa_coefficient": QualityMetrics.var_kappa_coefficient(matrix_confusion2),
-        "var_kappa_coefficient_advanced": QualityMetrics.var_kappa_coefficient_advanced(matrix_confusion2),
-        "precision": QualityMetrics.precision(matrix_confusion2),
-        "recall": QualityMetrics.recall(matrix_confusion2),
-        "f_score_1/2": QualityMetrics.f_score(0.5, matrix_confusion2),
-        "f_score_1": QualityMetrics.f_score(1, matrix_confusion2),
-        "f_score_2": QualityMetrics.f_score(2, matrix_confusion2)
-    }
-    alpha =0.05
-    hipotese = {"Hipotese": QualityMetrics.significanceTest(QualityMetrics().kappa_coefficient(matrix_confusion1),QualityMetrics().kappa_coefficient(matrix_confusion2),QualityMetrics.var_kappa_coefficient(matrix_confusion1),QualityMetrics.var_kappa_coefficient(matrix_confusion2),len(capture.x_test),alpha)}
-    response_data = {
-            "message": "Modelo LinearDiscriminant criado",
-            "Name": "Distancia Minima",
-            "Metrics": [  metrics1, metrics2 ],
-            "Hipotese": hipotese
-    }
-        
-    return jsonify(response_data)
 #Rotas de prediçoes
 
 #Rota do algoritmo distancia minima
@@ -251,6 +193,88 @@ def get_bayesClassifier():
         return jsonify(response_data)
     else:
         return jsonify({"message": "Invalid data"}), 400
+    
+#Rotas utils
+
+#Rotas de vizualizacao de plots
+@app.route('/api/plots/<model>/<path:path>', methods=['GET'])
+def send_plot(model, path):
+    return send_from_directory(model, path)
+
+@app.route('/api/metrics/<model1>/<model2>', methods=['GET'])
+def metrics_model(model1, model2):
+    # Verificar se os modelos passados existem no mapeamento
+    if model1.lower() not in model_map or model2.lower() not in model_map:
+        return jsonify({"error": "Model not found"}), 400 
+    
+    # Obter os objetos correspondentes
+    model_1 = model_map[model1.lower()]
+    model_2 = model_map[model2.lower()]
+
+    # Obter matrizes de confusão
+    matrix_confusion1 = model_1.getMatrizConfusion()
+    matrix_confusion2 = model_2.getMatrizConfusion()
+
+    # Função para calcular todas as métricas
+    def calcular_metricas(matrix_confusion):
+        
+        if capture.getClassifications() is not None and len(matrix_confusion) > 0:
+            # Obter a lista de classes traduzidas (ex: nomes originais das classes)
+            classes = capture.getClassifications()
+            # Obter acurácias do produtor e usuário
+            producer_accuracies = QualityMetrics.producer_accuracy(matrix_confusion)
+            user_accuracies = QualityMetrics.user_accuracy(matrix_confusion)
+
+            # Criar dicionários para associar classes aos valores
+            producer_accuracy = {classes[i+1]: producer_accuracies[i] for i in range(len(producer_accuracies))}
+            user_accuracy = {classes[i+1]: user_accuracies[i] for i in range(len(user_accuracies))}
+            
+            return {
+                "Producer accuracy": producer_accuracy,
+                "User accuracy": user_accuracy,
+                "Global accuracy": QualityMetrics.global_accuracy(matrix_confusion),
+                "Causal accuracy": QualityMetrics.causal_accuracy(matrix_confusion),
+                "Kappa coefficient": QualityMetrics.kappa_coefficient(matrix_confusion),
+                "Var kappa coefficient": QualityMetrics.var_kappa_coefficient(matrix_confusion),
+                "Var kappa coefficient_advanced": QualityMetrics.var_kappa_coefficient_advanced(matrix_confusion),
+                "Precision": QualityMetrics.precision(matrix_confusion),
+                "Recall": QualityMetrics.recall(matrix_confusion),
+                "F Score 1/2": QualityMetrics.f_score(0.5, matrix_confusion),
+                "F Score 1": QualityMetrics.f_score(1, matrix_confusion),
+                "F Score 2": QualityMetrics.f_score(2, matrix_confusion)
+            }
+        else:
+            return None
+    
+    # Calcular métricas para os dois modelos
+    metrics1 = calcular_metricas(matrix_confusion1)
+    metrics2 = calcular_metricas(matrix_confusion2)
+
+    # Ajustar a estrutura das métricas para o formato desejado
+    metrics_output = [
+        {"Quality Metrics": metric, f"{model1}": metrics1[metric], f"{model2}": metrics2[metric]}
+        for metric in metrics1
+    ]
+    # Calcular hipótese
+    alpha = 0.05
+    hipotese = {"Hipotese": QualityMetrics.significanceTest(
+        metrics1["Kappa coefficient"],
+        metrics2["Kappa coefficient"],
+        metrics1["Var kappa coefficient"],
+        metrics2["Var kappa coefficient"],
+        len(capture.x_test),
+        alpha
+    )}
+        
+    # Criar resposta
+    response_data = {
+        "message": "Modelo LinearDiscriminant criado",
+        "Name": "Distancia Minima",
+        "Metrics": metrics_output,
+        "Hipotese": hipotese
+    }
+        
+    return jsonify(response_data)
 
 
 
