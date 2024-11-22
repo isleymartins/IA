@@ -29,7 +29,7 @@ const TabPanel: React.FC<TabPanelProps> = (props) => {
     >
       {value === index && (
         <Box sx={{ p: 2 }}>
-          <Typography component="div">{children}</Typography> 
+          <Typography component="div">{children}</Typography>
         </Box>
       )}
     </div>
@@ -44,7 +44,6 @@ const a11yProps = (index: number) => {
 };
 
 const FormComponent: React.FC = () => {
-  const [isClicked, setIsClicked] = useState(false);
   const [value, setValue] = useState(0);
 
   const authContext = useContext(AuthContext);
@@ -54,28 +53,29 @@ const FormComponent: React.FC = () => {
     return null;
   }
 
-  const { fileData, setFileData,formData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext;
+  const { fileData, setFileData, formData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext;
 
   const handleChangeBar = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 
   useEffect(() => {
-    if (directory) {
-      getModel();
-      setIsClicked(false);
+    if (formData) {
+      getModel()
     }
-  }, [directory]);
+  }, [formData]);
 
   const getModel = async () => {
     try {
       for (const model of directory) {
         const modelData: ModelPrediction | undefined = await fetchModel(model);
-
+  
         if (modelData) {
           setModelPrediction((prevState: ModelPrediction[]): ModelPrediction[] => {
-            const existingModelIndex = prevState.findIndex((models: ModelPrediction) => models.name === modelData.name);
-
+            const existingModelIndex = prevState.findIndex(
+              (models) => models.name === modelData.name
+            );
+  
             if (existingModelIndex !== -1) {
               const updatedModels = [...prevState];
               updatedModels[existingModelIndex] = modelData;

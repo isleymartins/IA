@@ -1,27 +1,17 @@
-// CardComponent.tsx
-import React, { ChangeEvent, FormEvent } from 'react';
-import { Card, CardContent, TextField, CardActions, Button, Typography, IconButton } from '@mui/material';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import React, { ReactNode, FormEvent } from 'react';
+import { Card, CardContent, CardActions, Button, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import {Form} from "../../model/model";
+import { Form } from "../../model/model"; 
 
 interface CardComponentProps {
     handleClose: () => void;
     handleFormChange: (formData: Form) => void;
     handleFormSubmit: () => void;
     formData: Form;
+    children: ReactNode;
 }
 
-const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormChange, handleFormSubmit, formData }) => {
-
-    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const { name, value, files } = event.target;
-        const updatedData = {
-            ...formData,
-            [name]: files ? files[0] : value,
-        };
-        handleFormChange(updatedData);
-    };
+const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormChange, handleFormSubmit, formData, children }) => {
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -30,7 +20,7 @@ const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormCh
     };
 
     return (
-        <Card sx={{ maxWidth: 400, margin: '20px auto', position: 'relative' }}>
+        <Card sx={{ maxWidth: 400, margin: 'auto', padding:"20px" , position: 'relative' }}>
             <IconButton
                 onClick={handleClose}
                 sx={{
@@ -42,44 +32,8 @@ const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormCh
                 <CloseIcon />
             </IconButton>
             <form id="uploadForm" onSubmit={handleSubmit}>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        Enviar Arquivo
-                    </Typography>
-                    <TextField
-                        label="Porcentagem de teste"
-                        type="number"
-                        id="testSize"
-                        name="testCase"
-                        value={formData.testCase}
-                        onChange={handleChange}
-                        fullWidth
-                        required
-                    />
-                    <TextField
-                        label="Feature"
-                        type="text"
-                        id="feature"
-                        name="feature"
-                        value={formData.feature}
-                        onChange={handleChange}
-                        fullWidth
-                        required
-                    />
-                    <Button
-                        variant="contained"
-                        component="label"
-                        startIcon={<CloudUploadIcon />}
-                    >
-                        Upload
-                        <input
-                            type="file"
-                            id="fileInput"
-                            name="file"
-                            onChange={handleChange}
-                            hidden
-                        />
-                    </Button>
+                <CardContent sx={{margin: '40px 0px 0px 0px', position: 'relative' }}>
+                    {children}
                 </CardContent>
                 <CardActions>
                     <Button type="submit" color="primary" variant="contained">
@@ -91,4 +45,4 @@ const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormCh
     );
 };
 
-export default CardComponent;
+export { CardComponent };

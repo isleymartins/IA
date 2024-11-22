@@ -138,8 +138,14 @@ def metrics_mode1(model1, model2):
     }
     alpha =0.05
     hipotese = {"Hipotese": QualityMetrics.significanceTest(QualityMetrics().kappa_coefficient(matrix_confusion1),QualityMetrics().kappa_coefficient(matrix_confusion2),QualityMetrics.var_kappa_coefficient(matrix_confusion1),QualityMetrics.var_kappa_coefficient(matrix_confusion2),len(capture.x_test),alpha)}
-
-    return jsonify(metrics1,metrics2,hipotese)
+    response_data = {
+            "message": "Modelo LinearDiscriminant criado",
+            "Name": "Distancia Minima",
+            "Metrics": [  metrics1, metrics2 ],
+            "Hipotese": hipotese
+    }
+        
+    return jsonify(response_data)
 #Rotas de prediçoes
 
 #Rota do algoritmo distancia minima

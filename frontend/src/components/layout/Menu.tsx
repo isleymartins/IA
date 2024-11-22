@@ -24,13 +24,14 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   TransformSharp,
-} from '@mui/icons-material'
-import CardComponent from '../layout/Card';
+} from '@mui/icons-material';
+import { CardComponent } from '../layout/Card';
+import { FormUploadFile } from '../pages/Form/FormUploud';
 import FormComponent from '../pages/Form/Conteiner';
 import QualityMetricsComponent from '../pages/QualityMetrics/Conteiner';
 import { Form } from "../../model/model";
 import { fetchUpload } from "../../service/axios";
-import { AuthContext } from "../../context/AuthContext"
+import { AuthContext } from "../../context/AuthContext";
 
 const drawerWidth = 240;
 
@@ -89,20 +90,17 @@ const Menu: React.FC = () => {
   const [open, setOpen] = React.useState(false);
   const [pagesNumber, setPagesNumber] = React.useState(0);
   const [showCard, setShowCard] = React.useState(false);
+  const [tempFormData, setTempFormData] = React.useState<Form>({ testCase: 0, feature: '', file: null });
 
   if (!authContext) {
     console.error("Deu ruim");
     return null;
   }
 
-  const { fileData, setFileData,formData, setFormData,setDirectory } = authContext;
+  const { fileData, setFileData, formData, setFormData, setDirectory } = authContext;
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
+  const toggleDrawer = () => {
+    setOpen(prevOpen => !prevOpen);
   };
 
   const handleToggleCard = () => {
@@ -110,22 +108,23 @@ const Menu: React.FC = () => {
   };
 
   const handleFormChange = (updatedData: Form) => {
-    setFormData(updatedData);
+    setTempFormData(updatedData);
   };
 
   const handleFormSubmit = async () => {
-
+    setFormData(tempFormData); // Atualiza formData somente no submit
     const data = new FormData();
-    for (const key in formData) {
-      if (formData[key as keyof Form] !== null) {
-        data.append(key, formData[key as keyof Form] as string | Blob);
+    for (const key in tempFormData) {
+      if (tempFormData[key as keyof Form] !== null) {
+        data.append(key, tempFormData[key as keyof Form] as string | Blob);
       }
     }
     const result = await fetchUpload(data);
     if (result) {
-      setFileData(result)
-      setDirectory(result.models)
+      setFileData(result);
+      setDirectory(result.models);
     }
+    handleToggleCard(); // Fechar o card após submissão
   };
 
   const pages = (value: number) => {
@@ -141,7 +140,7 @@ const Menu: React.FC = () => {
 
   const titulo = [
     { label: 'Predição', icon: <TransformSharp /> },
-    { label: 'Metricas de Qualidade', icon: <TransformSharp /> }
+    { label: 'Metricas de Qualidade', icon: <TransformSharp /> },
   ];
 
   return (
@@ -152,7 +151,7 @@ const Menu: React.FC = () => {
           <IconButton
             color="inherit"
             aria-label="open drawer"
-            onClick={handleDrawerOpen}
+            onClick={toggleDrawer}
             edge="start"
             sx={{ mr: 2, ...(open && { display: 'none' }) }}
           >
@@ -180,7 +179,7 @@ const Menu: React.FC = () => {
         open={open}
       >
         <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
+          <IconButton onClick={toggleDrawer}>
             {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
           </IconButton>
         </DrawerHeader>
@@ -211,8 +210,10 @@ const Menu: React.FC = () => {
               handleClose={handleToggleCard}
               handleFormChange={handleFormChange}
               handleFormSubmit={handleFormSubmit}
-              formData={formData}
-            />
+              formData={tempFormData} // Usando tempFormData
+            >
+              <FormUploadFile handleFormChange={handleFormChange} formData={tempFormData} />
+            </CardComponent>
           </Box>
         )}
         <Paper>{pages(pagesNumber)}</Paper>

@@ -1,5 +1,5 @@
 import { apiUrl } from '../../config'
-import {Form, ModelPrediction,FileInformation } from "../model/model";
+import { Form, ModelPrediction, FileInformation, QualityMetrics } from "../model/model";
 import axios from 'axios'
 
 export const fetchImage = async (path: string): Promise<Blob | undefined> => {
@@ -44,12 +44,38 @@ export const fetchModel = async (model: string): Promise<ModelPrediction | undef
     return modelPrediction;
   } catch (error) {
     console.error('Erro ao buscar o modelo:', error);
+  }
+};
+
+export const fetchQualityMetrics = async (model1: string, model2: string): Promise<QualityMetrics[] | undefined> => {
+  try {
+    const response = await axios.get(`${apiUrl}/api/metrics/${model1}/${model2}`);
+    const { Metrics } = response.data;
+
+    const parsedMetrics = Metrics.map((metric: any): QualityMetrics => ({
+      causal_accuracy: metric.causal_accuracy,
+      f_score_1: metric.f_score_1,
+      f_score_1_2: metric["f_score_1/2"],
+      f_score_2: metric.f_score_2,
+      global_accuracy: metric.global_accuracy,
+      kappa_coefficient: metric.kappa_coefficient,
+      precision: metric.precision,
+      producer_accuracy: metric.producer_accuracy,
+      recall: metric.recall,
+      user_accuracy: metric.user_accuracy,
+      var_kappa_coefficient: metric.var_kappa_coefficient,
+      var_kappa_coefficient_advanced: metric.var_kappa_coefficient_advanced,
+    }));
+
+    return parsedMetrics;
+  } catch (error) {
+    console.error("Erro ao buscar métricas de qualidade:", error);
     return undefined;
   }
 };
 
 
-export const fetchUpload = async (fileData: FormData): Promise<FileInformation| undefined>  => {
+export const fetchUpload = async (fileData: FormData): Promise<FileInformation | undefined> => {
 
   try {
     const response = await fetch(`${apiUrl}/upload`, {
@@ -58,7 +84,7 @@ export const fetchUpload = async (fileData: FormData): Promise<FileInformation| 
     });
 
     if (response.ok) {
-      const result:any = await response.json()
+      const result: any = await response.json()
       return result
 
     } else {
