@@ -11,7 +11,6 @@ class QualityMetrics:
     @staticmethod
     def producer_accuracy(matrix_confusion):
         #Calcula a acurácia do produtor para cada classe.
-        
         accuracy = []
         for index in range(len(matrix_confusion)):
             ok = matrix_confusion[index][index]
@@ -22,7 +21,6 @@ class QualityMetrics:
     @staticmethod
     def user_accuracy(matrix_confusion):
         #Calcula a acurácia do usuário para cada classe.
-        
         accuracy = []
         for column in range(len(matrix_confusion)):
             ok = matrix_confusion[column][column]
