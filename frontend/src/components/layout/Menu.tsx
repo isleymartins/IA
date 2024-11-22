@@ -82,20 +82,20 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end',
 }));
 
-const Menu = () => {
+const Menu: React.FC = () => {
   const theme = useTheme();
-
-  const authContext = useContext(AuthContext)
+  const authContext = useContext(AuthContext);
 
   const [open, setOpen] = React.useState(false);
   const [pagesNumber, setPagesNumber] = React.useState(0);
   const [showCard, setShowCard] = React.useState(false);
 
   if (!authContext) {
-    return console.log("Deu ruim");
+    console.error("Deu ruim");
+    return null;
   }
 
-  const { formData, setFormData, directory, setDirectory } = authContext
+  const { formData, setFormData, directory, setDirectory } = authContext;
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -128,11 +128,10 @@ const Menu = () => {
       });
 
       if (response.ok) {
-        const result = await response.json()
+        const result = await response.json();
         console.log('Form Data Submitted:', formData);
         setDirectory(result.models);
         console.log('Response Data:', directory);
-        // Atualize seu estado ou passe os dados para os componentes necessários
       } else {
         console.error('Erro ao submeter os dados:', response.statusText);
       }
@@ -232,5 +231,6 @@ const Menu = () => {
       </Main>
     </Box>
   );
-}
+};
+
 export default Menu;
