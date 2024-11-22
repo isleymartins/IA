@@ -1,7 +1,8 @@
 import React, { ChangeEvent } from 'react';
-import { TextField, Button } from '@mui/material';
+import { TextField, Button, Box } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Form } from "../../../model/model";
+import { Check } from '@mui/icons-material';
 
 interface FormUploadFileProps {
     handleFormChange: (formData: Form) => void;
@@ -19,11 +20,12 @@ const FormUploadFile: React.FC<FormUploadFileProps> = ({ handleFormChange, formD
     };
 
     return (
-        <>
+        <Box>
             <TextField
                 label="Porcentagem de teste"
                 type="number"
                 id="testSize"
+                size='small'
                 name="testCase"
                 value={formData.testCase || ''}
                 onChange={handleChange}
@@ -34,6 +36,7 @@ const FormUploadFile: React.FC<FormUploadFileProps> = ({ handleFormChange, formD
                 label="Feature"
                 type="text"
                 id="feature"
+                size='small'
                 name="feature"
                 value={formData.feature || ''}
                 onChange={handleChange}
@@ -41,11 +44,13 @@ const FormUploadFile: React.FC<FormUploadFileProps> = ({ handleFormChange, formD
                 required
             />
             <Button
-                variant="contained"
+                variant="outlined"
                 component="label"
-                startIcon={<CloudUploadIcon />}
+                fullWidth={true}
+                startIcon={formData.file?.name?<Check />:<CloudUploadIcon />}
             >
-                Upload
+                
+                {formData.file?.name || "Upload"}
                 <input
                     type="file"
                     id="fileInput"
@@ -53,8 +58,9 @@ const FormUploadFile: React.FC<FormUploadFileProps> = ({ handleFormChange, formD
                     onChange={handleChange}
                     hidden
                 />
-            </Button>
-        </>
+            </Button> 
+             
+            </Box>
     );
 }
 

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   Box,
   Drawer,
@@ -17,19 +17,19 @@ import {
   AppBarProps as MuiAppBarProps,
   Paper,
   Button
-} from '@mui/material';
+} from '@mui/material'
 import MuiAppBar from '@mui/material/AppBar';
 import {
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   TransformSharp,
-} from '@mui/icons-material';
+} from '@mui/icons-material'
 import { CardComponent } from '../layout/Card';
 import { FormUploadFile } from '../pages/Form/FormUploud';
 import FormComponent from '../pages/Form/Conteiner';
 import QualityMetricsComponent from '../pages/QualityMetrics/Conteiner';
-import { Form } from "../../model/model";
+import { FileInformation, Form } from "../../model/model";
 import { fetchUpload } from "../../service/axios";
 import { AuthContext } from "../../context/AuthContext";
 
@@ -90,14 +90,17 @@ const Menu: React.FC = () => {
   const [open, setOpen] = React.useState(false);
   const [pagesNumber, setPagesNumber] = React.useState(0);
   const [showCard, setShowCard] = React.useState(false);
-  const [tempFormData, setTempFormData] = React.useState<Form>({ testCase: 0, feature: '', file: null });
+  const [fileUploadForm, setTempFormData] = React.useState<Form>({ testCase: 0, feature: '', file: null })
 
-  if (!authContext) {
-    console.error("Deu ruim");
-    return null;
-  }
+  const { fileData, setFileData, formData, setFormData, setDirectory } = authContext
+  const [loading, setLoading] = React.useState<boolean>(false);
 
-  const { fileData, setFileData, formData, setFormData, setDirectory } = authContext;
+  useEffect(() => {
+    if (loading) {
+      handleFormSubmit()
+    }
+
+  }, [loading])
 
   const toggleDrawer = () => {
     setOpen(prevOpen => !prevOpen);
@@ -112,19 +115,25 @@ const Menu: React.FC = () => {
   };
 
   const handleFormSubmit = async () => {
-    setFormData(tempFormData); // Atualiza formData somente no submit
-    const data = new FormData();
-    for (const key in tempFormData) {
-      if (tempFormData[key as keyof Form] !== null) {
-        data.append(key, tempFormData[key as keyof Form] as string | Blob);
+    // Atualiza formData somente no submit
+    const data = new FormData()
+    for (const key in fileUploadForm) {
+      if (fileUploadForm[key as keyof Form] !== null) {
+        data.append(key, fileUploadForm[key as keyof Form] as string | Blob);
       }
     }
-    const result = await fetchUpload(data);
-    if (result) {
-      setFileData(result);
-      setDirectory(result.models);
-    }
-    handleToggleCard(); // Fechar o card após submissão
+
+    await fetchUpload(data).then((response: FileInformation | undefined) => {
+      if (response !== undefined) {
+        setFileData(response);
+        setDirectory(response.models)
+        setFormData(fileUploadForm)
+      }
+
+
+    }).finally(() => { setLoading(false) })
+
+    // handleToggleCard(); // Fechar o card após submissão
   };
 
   const pages = (value: number) => {
@@ -209,10 +218,12 @@ const Menu: React.FC = () => {
             <CardComponent
               handleClose={handleToggleCard}
               handleFormChange={handleFormChange}
-              handleFormSubmit={handleFormSubmit}
-              formData={tempFormData} // Usando tempFormData
+              // handleFormSubmit={handleFormSubmit(fileUploadForm)}
+              formData={fileUploadForm} // Usando fileUploadFrom
+              loading={loading}
+              setLoading={setLoading}
             >
-              <FormUploadFile handleFormChange={handleFormChange} formData={tempFormData} />
+              <FormUploadFile handleFormChange={handleFormChange} formData={fileUploadForm} />
             </CardComponent>
           </Box>
         )}

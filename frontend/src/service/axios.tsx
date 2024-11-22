@@ -75,9 +75,8 @@ export const fetchQualityMetrics = async (model1: string, model2: string): Promi
 };
 
 
-export const fetchUpload = async (fileData: FormData): Promise<FileInformation | undefined> => {
+export const fetchUpload = async (fileData: FormData): Promise< FileInformation | undefined> => {
 
-  try {
     const response = await fetch(`${apiUrl}/upload`, {
       method: 'POST',
       body: fileData,
@@ -87,10 +86,7 @@ export const fetchUpload = async (fileData: FormData): Promise<FileInformation |
       const result: any = await response.json()
       return result
 
-    } else {
-      console.error('Erro ao submeter os dados:', response.statusText);
-    }
-  } catch (error) {
-    console.error('Erro:', error);
-  }
+    } 
+    console.error('Erro ao submeter os dados:', response.statusText);
+    return undefined
 }

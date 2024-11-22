@@ -1,28 +1,33 @@
 import React, { ReactNode, FormEvent } from 'react';
-import { Card, CardContent, CardActions, Button, IconButton } from '@mui/material';
+import { Card, CardContent, CardActions, Button, IconButton, CircularProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { Form } from "../../model/model"; 
+import { Form } from "../../model/model";
 
 interface CardComponentProps {
-    handleClose: () => void;
-    handleFormChange: (formData: Form) => void;
-    handleFormSubmit: () => void;
     formData: Form;
     children: ReactNode;
+    loading: boolean
+
+    handleClose: () => void;
+    handleFormChange: (formData: Form) => void;
+    // handleFormSubmit: () => void;
+    setLoading: (loading: boolean) => void
 }
 
-const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormChange, handleFormSubmit, formData, children }) => {
+const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormChange, /*handleFormSubmit, */formData, children, setLoading, loading }) => {
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        handleFormSubmit();
-        handleClose();
+        setLoading(true)
+        // handleFormSubmit();
+        // handleClose();
     };
 
     return (
-        <Card sx={{ maxWidth: 400, margin: 'auto', padding:"20px" , position: 'relative' }}>
+        <Card sx={{ maxWidth: 400, margin: 'auto', padding: "20px", position: 'relative' }}>
             <IconButton
-                onClick={handleClose}
+                onClick={handleClose} 
+
                 sx={{
                     position: 'absolute',
                     right: 8,
@@ -32,11 +37,17 @@ const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormCh
                 <CloseIcon />
             </IconButton>
             <form id="uploadForm" onSubmit={handleSubmit}>
-                <CardContent sx={{margin: '40px 0px 0px 0px', position: 'relative' }}>
+                <CardContent sx={{ margin: '40px 0px 0px 0px', position: 'relative' }}>
                     {children}
                 </CardContent>
                 <CardActions>
-                    <Button type="submit" color="primary" variant="contained">
+                    <Button
+                        type="submit"
+                        color="primary"
+                        fullWidth={true}
+                        startIcon={loading ? <CircularProgress size="1rem" /> : undefined}
+                        variant="contained"
+                        disabled={loading}>
                         Submeter
                     </Button>
                 </CardActions>

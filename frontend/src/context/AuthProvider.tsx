@@ -6,8 +6,9 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [formData, setFormData] = useState<Form>({ file: null, testCase: 0, feature: '' });
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children}) => {
+
+  const [formData, setFormData] = useState<Form>({ file: null, testCase: 30, feature: '' });
   const [fileData, setFileData] = useState<FileInformation>( {data: 0, test: 0, models:[]})
   const [directory, setDirectory] = useState<string[]>([]);
   const [modelPrediction, setModelPrediction] = useState<ModelPrediction[]>([]);
