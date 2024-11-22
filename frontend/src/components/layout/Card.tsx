@@ -1,6 +1,6 @@
 // CardComponent.tsx
 import React, { ChangeEvent, FormEvent } from 'react';
-import { Card, CardContent, TextField, CardActions, Button, Typography, Grid, IconButton } from '@mui/material';
+import { Card, CardContent, TextField, CardActions, Button, Typography, IconButton } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import {Form} from "../../model/model";

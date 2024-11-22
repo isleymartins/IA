@@ -84,7 +84,7 @@ def upload_file():
         colors.setData(len(capture.y_train.unique()))
 
         models = ["minimumdistanceclassifier", "bayesclassifier"]
-        return jsonify({"message": "File successfully uploaded", "data": capture.getData().to_dict(orient='records'), "models": models}), 200
+        return jsonify({"message": "O arquivo foi passado corretamente", "data": len(capture.getData().to_dict(orient='records')),"test": len(capture.y_test), "models": models}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400
     

@@ -54,7 +54,7 @@ const FormComponent: React.FC = () => {
     return null;
   }
 
-  const { formData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext;
+  const { fileData, setFileData,formData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext;
 
   const handleChangeBar = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);

@@ -11,9 +11,8 @@ export interface ModelPrediction {
     plots: Blob[];
 }
 
-export interface TabPanelProps {
-    children?: React.ReactNode;
-    dir?: string;
-    index: number;
-    value: number;
-  }
+export interface FileInformation {
+    data: number;
+    test: number;
+    models: string[];
+}

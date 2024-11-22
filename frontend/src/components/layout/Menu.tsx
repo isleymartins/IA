@@ -24,12 +24,12 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   TransformSharp,
-} from '@mui/icons-material';
-import { apiUrl } from '../../../config'
+} from '@mui/icons-material'
 import CardComponent from '../layout/Card';
 import FormComponent from '../pages/Form/Conteiner';
 import QualityMetricsComponent from '../pages/QualityMetrics/Conteiner';
 import { Form } from "../../model/model";
+import { fetchUpload } from "../../service/axios";
 import { AuthContext } from "../../context/AuthContext"
 
 const drawerWidth = 240;
@@ -95,7 +95,7 @@ const Menu: React.FC = () => {
     return null;
   }
 
-  const { formData, setFormData, directory, setDirectory } = authContext;
+  const { fileData, setFileData,formData, setFormData,setDirectory } = authContext;
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -114,29 +114,17 @@ const Menu: React.FC = () => {
   };
 
   const handleFormSubmit = async () => {
-    try {
-      const data = new FormData();
-      for (const key in formData) {
-        if (formData[key as keyof Form] !== null) {
-          data.append(key, formData[key as keyof Form] as string | Blob);
-        }
-      }
 
-      const response = await fetch(`${apiUrl}/upload`, {
-        method: 'POST',
-        body: data,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Form Data Submitted:', formData);
-        setDirectory(result.models);
-        console.log('Response Data:', directory);
-      } else {
-        console.error('Erro ao submeter os dados:', response.statusText);
+    const data = new FormData();
+    for (const key in formData) {
+      if (formData[key as keyof Form] !== null) {
+        data.append(key, formData[key as keyof Form] as string | Blob);
       }
-    } catch (error) {
-      console.error('Erro:', error);
+    }
+    const result = await fetchUpload(data);
+    if (result) {
+      setFileData(result)
+      setDirectory(result.models)
     }
   };
 
