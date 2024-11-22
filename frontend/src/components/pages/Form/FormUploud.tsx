@@ -3,6 +3,7 @@ import { TextField, Button, Box } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Form } from "../../../model/model";
 import { Check } from '@mui/icons-material';
+import theme from '../../../theme';
 
 interface FormUploadFileProps {
     handleFormChange: (formData: Form) => void;
@@ -23,7 +24,15 @@ const FormUploadFile: React.FC<FormUploadFileProps> = ({ handleFormChange, formD
         <Box>
             <TextField
                 label="Porcentagem de teste"
+                margin='dense'  
                 type="number"
+                sx={{color: `${theme.palette.getContrastText}`}}
+                slotProps={{
+                    input: {
+                      inputProps: { min: 0 }
+                    },
+                  }}
+              
                 id="testSize"
                 size='small'
                 name="testCase"
@@ -35,6 +44,8 @@ const FormUploadFile: React.FC<FormUploadFileProps> = ({ handleFormChange, formD
             <TextField
                 label="Feature"
                 type="text"
+                margin='none' 
+                sx={{color: `${theme.palette.getContrastText}`}}
                 id="feature"
                 size='small'
                 name="feature"
@@ -46,6 +57,7 @@ const FormUploadFile: React.FC<FormUploadFileProps> = ({ handleFormChange, formD
             <Button
                 variant="outlined"
                 component="label"
+                sx={{marginTop:"2%"}}
                 fullWidth={true}
                 startIcon={formData.file?.name?<Check />:<CloudUploadIcon />}
             >

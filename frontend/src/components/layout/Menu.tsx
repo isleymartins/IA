@@ -166,10 +166,10 @@ const Menu: React.FC = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6"  noWrap component="div" sx={{ flexGrow: 1 }}>
             Project Artificial Intelligence
           </Typography>
-          <Button color="inherit" onClick={handleToggleCard}>
+          <Button color="inherit"  variant="outlined" onClick={handleToggleCard}>
             Adicionar dados
           </Button>
         </Toolbar>
