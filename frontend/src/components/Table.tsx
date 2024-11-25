@@ -84,27 +84,27 @@ const TableData = ({ row, feature, title }: Rows) => {
             <Table sx={{ minWidth: 100 }} aria-label="caption table">
                 <TableHead>
                     <TableRow>
-                        <TableCell align="center" className={classes.title} colSpan={Object.keys(row[0]).length + 1}>
+                        <TableCell size='small' align="center" className={classes.title} colSpan={Object.keys(row[0]).length + 1}>
                             <Typography variant="h6">{title}</Typography>
                         </TableCell>
                     </TableRow>
                     <TableRow>
-                        {hasFeature && <TableCell className={classes.column} key={feature}>{feature}</TableCell>}
+                        {hasFeature && <TableCell size='small' className={classes.column} key={feature}>{feature}</TableCell>}
                         {Object.keys(row[0]).map((column, index) => (
                             column !== feature && column !== 'Prediction' && (
                                 <TableCell className={classes.column} key={index}>{column}</TableCell>
                             )
                         ))}
-                        {hasPrediction && <TableCell className={classes.column} key="Prediction">Prediction</TableCell>}
+                        {hasPrediction && <TableCell size='small' className={classes.column} key="Prediction">Prediction</TableCell>}
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {row.map((cell, rowIndex) => (
                         <TableRow key={rowIndex}>
-                            {hasFeature && <TableCell key={`feature-${rowIndex}`} className={classes.rows2}>{cell[feature]}</TableCell>}
+                            {hasFeature && <TableCell size='small' key={`feature-${rowIndex}`} className={classes.rows2}>{cell[feature]}</TableCell>}
                             {Object.entries(cell).map(([key, value]: any, cellIndex) => (
                                 key !== feature && key !== 'Prediction' && (
-                                    <TableCell key={cellIndex} className={classes.rows}>
+                                    <TableCell size='small' key={cellIndex} className={classes.rows}>
                                         {Array.isArray(value) || typeof value === 'object' ? (
                                             renderNestedTable(value, classes)
                                         ) : (
@@ -113,7 +113,7 @@ const TableData = ({ row, feature, title }: Rows) => {
                                     </TableCell>
                                 )
                             ))}
-                            {hasPrediction && <TableCell key={`Prediction-${rowIndex}`} className={classes.rows2}>{cell.Prediction}</TableCell>}
+                            {hasPrediction && <TableCell size='small' key={`Prediction-${rowIndex}`} className={classes.rows2}>{cell.Prediction}</TableCell>}
                         </TableRow>
                     ))}
                 </TableBody>

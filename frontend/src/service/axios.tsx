@@ -47,12 +47,15 @@ export const fetchModel = async (model: string): Promise<ModelPrediction | undef
   }
 };
 
-export const fetchQualityMetrics = async (model1: string, model2: string): Promise<QualityMetrics[] | undefined> => {
+export const fetchQualityMetrics = async (model1: string, model2: string): Promise<QualityMetrics | undefined> => {
   try {
     const response = await axios.get(`${apiUrl}/api/metrics/${model1}/${model2}`);
-    const { Metrics } = response.data;
-
-    return Metrics;
+    const { Metrics, Hipotese } = response.data;
+    const hipotese: string = Hipotese
+    return {
+      metrics: Metrics,
+      hipotese: hipotese
+    }
   } catch (error) {
     console.error("Erro ao buscar métricas de qualidade:", error);
     return undefined;
@@ -60,18 +63,18 @@ export const fetchQualityMetrics = async (model1: string, model2: string): Promi
 };
 
 
-export const fetchUpload = async (fileData: FormData): Promise< FileInformation | undefined> => {
+export const fetchUpload = async (fileData: FormData): Promise<FileInformation | undefined> => {
 
-    const response = await fetch(`${apiUrl}/upload`, {
-      method: 'POST',
-      body: fileData,
-    });
+  const response = await fetch(`${apiUrl}/upload`, {
+    method: 'POST',
+    body: fileData,
+  });
 
-    if (response.ok) {
-      const result: any = await response.json()
-      return result
+  if (response.ok) {
+    const result: any = await response.json()
+    return result
 
-    } 
-    console.error('Erro ao submeter os dados:', response.statusText);
-    return undefined
+  }
+  console.error('Erro ao submeter os dados:', response.statusText);
+  return undefined
 }

@@ -26,8 +26,8 @@ import {
   TransformSharp,
 } from '@mui/icons-material'
 import { CardComponent } from '../layout/Card';
-import { FormUploadFile } from '../pages/Form/FormUploud';
-import FormComponent from '../pages/Form/Conteiner';
+import { FormUploadFile } from '../pages/Form/FormUploud';   
+import FormComponent from "../pages/Form/Conteiner"; 
 import QualityMetricsComponent from '../pages/QualityMetrics/Conteiner';
 import { FileInformation, Form } from "../../model/model";
 import { fetchUpload } from "../../service/axios";
@@ -139,16 +139,19 @@ const Menu: React.FC = () => {
   const pages = (value: number) => {
     switch (value) {
       case 0:
-        return <FormComponent />;
+        return <FormComponent index={value} />;
       case 1:
-        return <QualityMetricsComponent />;
+        return <FormComponent index={value} />;
+      /*case 2:
+        return <QualityMetricsComponent />;*/
       default:
         return 'Não encontrado';
     }
   };
 
   const titulo = [
-    { label: 'Predição', icon: <TransformSharp /> },
+    { label: "Distancia Minima", icon: <TransformSharp /> },
+    { label: "Classificador de Bayes", icon: <TransformSharp /> },
     { label: 'Metricas de Qualidade', icon: <TransformSharp /> },
   ];
 
@@ -166,10 +169,10 @@ const Menu: React.FC = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6"  noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Project Artificial Intelligence
           </Typography>
-          <Button color="inherit"  variant="outlined" onClick={handleToggleCard}>
+          <Button color="inherit" variant="outlined" onClick={handleToggleCard}>
             Adicionar dados
           </Button>
         </Toolbar>

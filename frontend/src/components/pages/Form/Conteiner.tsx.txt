@@ -8,10 +8,6 @@ import Box from '@mui/material/Box';
 import { ModelPrediction } from "../../../model/model";
 import { fetchModel } from "../../../service/axios";
 import { AuthContext } from "../../../context/AuthContext";
-import { Paper } from '@mui/material';
-import Grid from '@mui/material/Grid2';
-import { styled } from '@mui/material/styles';
-import Stepper from './Stepper';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -47,20 +43,7 @@ const a11yProps = (index: number) => {
   };
 };
 
-const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: '#fff',
-  ...theme.typography.body2,
-  padding: theme.spacing(1),
-  textAlign: 'center',
-  color: theme.palette.text.secondary,
-  ...theme.applyStyles('dark', {
-    backgroundColor: '#1A2027',
-  }),
-}));
-interface FormComponentProp{
-  index: number
-}
-const FormComponent: React.FC<FormComponentProp> = ({ index }: FormComponentProp) => {
+const FormComponent: React.FC = () => {
   const [value, setValue] = useState(0);
 
   const authContext = useContext(AuthContext);
@@ -81,13 +64,13 @@ const FormComponent: React.FC<FormComponentProp> = ({ index }: FormComponentProp
     try {
       for (const model of directory) {
         const modelData: ModelPrediction | undefined = await fetchModel(model);
-
+  
         if (modelData) {
           setModelPrediction((prevState: ModelPrediction[]): ModelPrediction[] => {
             const existingModelIndex = prevState.findIndex(
               (models) => models.name === modelData.name
             );
-
+  
             if (existingModelIndex !== -1) {
               const updatedModels = [...prevState];
               updatedModels[existingModelIndex] = modelData;
@@ -95,43 +78,54 @@ const FormComponent: React.FC<FormComponentProp> = ({ index }: FormComponentProp
             } else {
               return [...prevState, modelData];
             }
-
+            
           });
         }
       }
-      
+      console.log(modelPrediction);
     } catch (error) {
       console.error('Error:', error);
     }
   };
-  console.log(index,"!", modelPrediction[index])
+
   return (
     <Box sx={{ borderImageSlice: 'red', width: '70vw' }}>
-
-
-      <Grid container spacing={2}>
-        <Grid >
-          <Item key={index}>
-            {modelPrediction[index]?.model?.length > 0 && <TableData row={modelPrediction[index]?.model} feature={formData.feature} title="Modelo" />}
-          </Item>
-        </Grid>
-        <Grid >
-          <Item key={index}>
-            {modelPrediction[index]?.confusionMatrix?.length > 0 && <TableData row={modelPrediction[index]?.confusionMatrix} feature={formData.feature} title="Matriz de confusão" />}
-          </Item>
-        </Grid>
-        <Grid >
-          <Item key={index}>
-            {modelPrediction[index]?.test?.length > 0 && <TableData row={modelPrediction[index]?.test} feature={formData.feature} title="Dados de Teste" />}
-          </Item>
-        </Grid>
-        <Grid>
-          <Item key={index}>
-           { modelPrediction[index]&&<Stepper item={modelPrediction[index]?.plots} />}
-          </Item>
-        </Grid>
-      </Grid>
-
+      <AppBar position="relative">
+        <Tabs
+          value={value}
+          onChange={handleChangeBar}
+          indicatorColor="secondary"
+          textColor="inherit"
+          variant="fullWidth"
+          aria-label="full width tabs example"
+          centered
+        >
+          {modelPrediction.map((item, index) => (
+            <Tab label={item.name} {...a11yProps(index)} key={index} />
+          ))}
+        </Tabs>
+      </AppBar>
+      {modelPrediction.map((item, index) => (
+        <TabPanel value={value} index={index} key={index}>
+          <div className="container-table">
+            <div className="tables">
+              {item.model?.length > 0 && <TableData row={item.model} feature={formData.feature} title="Modelo" />}
+            </div>
+            <div className="tables">
+              {item.confusionMatrix?.length > 0 && <TableData row={item.confusionMatrix} feature={formData.feature} title="Matriz de confusão" />}
+            </div>
+            <div className="tables">
+              {item.test?.length > 0 && <TableData row={item.test} feature={formData.feature} title="Dados de Teste" />}
+            </div>
+            <div id={`images-${index}`}>
+              {item.plots?.map((blob, imgIndex) => {
+                const url = URL.createObjectURL(blob);
+                return <img key={imgIndex} src={url} alt="Plot Image" style={{ width: '30vw' }} />;
+              })}
+            </div>
+          </div>
+        </TabPanel>
+      ))}
     </Box>
   );
 };

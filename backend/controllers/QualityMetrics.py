@@ -144,5 +144,5 @@ class QualityMetrics:
         else:
             menssege = "Nao rejeitamos a hipotese nula"
 
-        return f"Estatistica de teste z: {z} Valor critico: {pontoCritico} {menssege}"
+        return f" Estatistica de teste z: {z} Valor critico: {pontoCritico} {menssege}"
 
