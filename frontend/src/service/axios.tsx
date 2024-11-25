@@ -33,6 +33,7 @@ export const fetchModel = async (model: string): Promise<ModelPrediction | undef
         console.warn(`Imagem não encontrada: ${imagePath}`);
       }
     }
+    const qualityMetrics = await fetchQualityMetrics(model)
 
     const modelPrediction: ModelPrediction = {
       name: Name,
@@ -40,6 +41,7 @@ export const fetchModel = async (model: string): Promise<ModelPrediction | undef
       test: Train,
       plots: blobs,
       confusionMatrix: Array.isArray(Precision) ? [...Precision] : [],
+      qualityMetrics: qualityMetrics
     };
     return modelPrediction;
   } catch (error) {
@@ -47,18 +49,15 @@ export const fetchModel = async (model: string): Promise<ModelPrediction | undef
   }
 };
 
-export const fetchQualityMetrics = async (model1: string, model2: string): Promise<QualityMetrics | undefined> => {
+export const fetchQualityMetrics = async (model: string): Promise<QualityMetrics | undefined> => {
   try {
-    const response = await axios.get(`${apiUrl}/api/metrics/${model1}/${model2}`);
-    const { Metrics, Hipotese } = response.data;
-    const hipotese: string = Hipotese
-    return {
-      metrics: Metrics,
-      hipotese: hipotese
-    }
+    const response = await axios.get(`${apiUrl}/api/metrics/${model}`);
+    const { Metrics } = response.data;
+
+    return Metrics
+ 
   } catch (error) {
     console.error("Erro ao buscar métricas de qualidade:", error);
-    return undefined;
   }
 };
 

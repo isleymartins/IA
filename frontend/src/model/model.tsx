@@ -10,7 +10,8 @@ export interface ModelPrediction {
     model: any[];
     test: any[];
     confusionMatrix: number[];
-    plots?: Blob[];
+    plots: Blob[];
+    qualityMetrics: any
 }
 
 export interface FileInformation {
@@ -27,6 +28,5 @@ export interface CardComponentProps {
     handleChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 export interface QualityMetrics{
-    metrics: any[];
-    hipotese: string;
+    metrics: any[]
 }

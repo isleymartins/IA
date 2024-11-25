@@ -11,21 +11,7 @@ const QualityMetricsComponent: React.FC = () => {
 
   const { formData } = authContext;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const fetchedMetrics = await fetchQualityMetrics("minimumdistanceclassifier", "bayesclassifier");
-        if (fetchedMetrics) {
-          setMetrics(fetchedMetrics);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar métricas de qualidade:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
+  
   return (
     <>
       {metrics && <TableData row={metrics.metrics} feature={formData.feature} title="Modelo" />}

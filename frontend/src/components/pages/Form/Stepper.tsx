@@ -32,7 +32,7 @@ export default function Stepper({ item }: any) {
     };
    
     return (
-        <Box sx={{ maxWidth: 400, flexGrow: 1 }}>
+        <Box sx={{  flexGrow: 1 }}>
             <Paper
                 square
                 elevation={0}
@@ -45,7 +45,7 @@ export default function Stepper({ item }: any) {
                     backgroundColor:'background.paper'
                 }}
             >
-                <Typography>{steps[activeStep]?.label}</Typography>
+                {/*<Typography>{steps[activeStep]?.label}</Typography>*/}
             </Paper>
             <Box sx={{/* height: 255, maxWidth: 400, width: '100%',*/ p: 2 }}>
                 {steps[activeStep]?.description}
@@ -56,13 +56,13 @@ export default function Stepper({ item }: any) {
                 position="static"
                 activeStep={activeStep}
                 color='primary'
-                nextButton={
+                nextButton={   
                     <Button
                         size="small"
                         onClick={handleNext}
                         disabled={activeStep === maxSteps - 1}
                     >
-                        Next
+                        Proximo
                         {theme.direction === 'rtl' ? (
                             <KeyboardArrowLeft />
                         ) : (
@@ -77,7 +77,7 @@ export default function Stepper({ item }: any) {
                         ) : (
                             <KeyboardArrowLeft />
                         )}
-                        Back
+                        Voltar
                     </Button>
                 }
             />

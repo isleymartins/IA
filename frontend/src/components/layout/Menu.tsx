@@ -24,13 +24,21 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   TransformSharp,
+  Balance,
+  BubbleChart,
+  DisplaySettings,
+  Diversity2,
+  Explore,
+  FindReplace,
+  Hub,
+  JoinInner,
 } from '@mui/icons-material'
 import { CardComponent } from '../layout/Card';
-import { FormUploadFile } from '../pages/Form/FormUploud';   
-import FormComponent from "../pages/Form/Conteiner"; 
+import { FormUploadFile } from '../pages/Form/FormUploud';
+import FormComponent from "../pages/Form/Conteiner";
 import QualityMetricsComponent from '../pages/QualityMetrics/Conteiner';
-import { FileInformation, Form } from "../../model/model";
-import { fetchUpload } from "../../service/axios";
+import { FileInformation, Form, ModelPrediction } from "../../model/model";
+import { fetchUpload, fetchModel } from "../../service/axios";
 import { AuthContext } from "../../context/AuthContext";
 
 const drawerWidth = 240;
@@ -92,7 +100,7 @@ const Menu: React.FC = () => {
   const [showCard, setShowCard] = React.useState(false);
   const [fileUploadForm, setTempFormData] = React.useState<Form>({ testCase: 0, feature: '', file: null })
 
-  const { fileData, setFileData, formData, setFormData, setDirectory } = authContext
+  const { fileData, setFileData, formData, setFormData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext
   const [loading, setLoading] = React.useState<boolean>(false);
 
   useEffect(() => {
@@ -114,6 +122,22 @@ const Menu: React.FC = () => {
     setTempFormData(updatedData);
   };
 
+  const allModels = async () => {
+    const models: ModelPrediction[] =[]
+
+    for (const model of directory) {
+      await fetchModel(model)
+        .then((modelData: ModelPrediction | undefined) => {
+          if (modelData) {
+            models.push(modelData)
+          }
+        })
+    }
+    setModelPrediction([...models])
+    console.log("allModels",modelPrediction)
+  }
+
+
   const handleFormSubmit = async () => {
     // Atualiza formData somente no submit
     const data = new FormData()
@@ -125,9 +149,17 @@ const Menu: React.FC = () => {
 
     await fetchUpload(data).then((response: FileInformation | undefined) => {
       if (response !== undefined) {
-        setFileData(response);
-        setDirectory(response.models)
+        //Dados do fromulario coma arquivo e porcentagem de teste
         setFormData(fileUploadForm)
+        //Dados relacionado a quantidade de teste, quantidade de dados total, e modelos disponiveis
+        setFileData(response);
+        // modelos disponiveis
+        setDirectory(response.models)
+        //Chamada de modelos
+        allModels()
+        console.log("Menu",response)
+
+
       }
 
 
@@ -139,9 +171,19 @@ const Menu: React.FC = () => {
   const pages = (value: number) => {
     switch (value) {
       case 0:
-        return <FormComponent index={value} />;
+        console.log("entrou1")
+        return <FormComponent index={value} model="minimumdistanceclassifier" />;
       case 1:
-        return <FormComponent index={value} />;
+        return <FormComponent index={value} model="" />;
+      case 2:
+        return <FormComponent index={value} model="" />;
+      case 3:
+        console.log("entrou2")
+        return <FormComponent index={value} model="bayesclassifier" />;
+      case 4:
+        return <FormComponent index={value} model="" />;
+      case 5:
+        return <FormComponent index={value} model="" />;
       /*case 2:
         return <QualityMetricsComponent />;*/
       default:
@@ -150,9 +192,13 @@ const Menu: React.FC = () => {
   };
 
   const titulo = [
-    { label: "Distancia Minima", icon: <TransformSharp /> },
-    { label: "Classificador de Bayes", icon: <TransformSharp /> },
-    { label: 'Metricas de Qualidade', icon: <TransformSharp /> },
+    { label: "Distancia Minima", icon: <Explore /> },
+    { label: "Perceptron Simples", icon: <DisplaySettings /> },
+    { label: "Perceptron com Regra Delta", icon: <FindReplace /> },
+    { label: "Classificador de Bayes", icon: <JoinInner /> },
+    { label: "Rede Neurais com Backpropagation", icon: <Diversity2 /> },
+    { label: "Cluster Particional", icon: <BubbleChart /> },
+    { label: "Maquina de Boltzman", icon: <Hub /> },
   ];
 
   return (

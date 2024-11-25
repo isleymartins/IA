@@ -80,8 +80,8 @@ const TableData = ({ row, feature, title }: Rows) => {
     const hasPrediction = row.some(obj => 'Prediction' in obj);
 
     return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 100 }} aria-label="caption table">
+        <TableContainer component={Paper} style={{ maxHeight: 400 }}>
+            <Table stickyHeader aria-label="caption table">
                 <TableHead>
                     <TableRow>
                         <TableCell size='small' align="center" className={classes.title} colSpan={Object.keys(row[0]).length + 1}>
