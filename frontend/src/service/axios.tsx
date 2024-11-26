@@ -82,15 +82,18 @@ export const fetchUpload = async (fileData: FormData): Promise<FileInformation |
 export const fetchHypothesisTest = async (model1: string, model2: string, alpha: number): Promise<Hipotese | undefined> => {
   try {
     const response = await axios.post(`${apiUrl}/api/metrics/${model1}/${model2}`, {
-      method: 'POST',
-      alpha: alpha,
+      alpha: alpha  // Remova o 'method' do corpo da requisição
+    }, {
+      headers: { 'Content-Type': 'application/json' }  // O cabeçalho para indicar o tipo de conteúdo
     });
+
     const { Metrics, Hipotese } = response.data;
+    console.log(response);
 
     return {
       metrics: Metrics,
       hipotese: Hipotese
-    }
+    };
 
   } catch (error) {
     console.error("Erro ao buscar métricas de qualidade:", error);

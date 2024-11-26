@@ -134,14 +134,12 @@ class QualityMetrics:
         return ((1 + b**2) * prec * rev) / ((b**2 * prec) + rev)
     
     @staticmethod
-    def significanceTest(k1, k2, sigma1, sigma2, amostra, alpha):
-        print("sigma1:", sigma1, "\nsigma2:", sigma2)
+    def significanceTest(k1, k2, sigma1, sigma2, alpha):
+        hipotese = "Teste de significancia\nHipótese nula (H0): As médias não são significativamente diferentes\nHipótese alternativa (H1): As médias são significativamente diferentes.\n"
 
         z = (k1 - k2) / math.sqrt(sigma1 + sigma2)
-        print("z:", z)
 
-        graus_de_liberdade = amostra - 1
-        pontoCritico = stats.t.ppf(1 - alpha/2, graus_de_liberdade)
+        pontoCritico = stats.t.ppf(1 - alpha/2, 2)
         
         menssege =""
         # Tomar a decisão
@@ -150,7 +148,7 @@ class QualityMetrics:
         else:
             menssege = "Nao rejeitamos a hipotese nula"
 
-        return f" Estatistica de teste z: {z} Valor critico: {pontoCritico} {menssege}"
+        return f"{hipotese}Estatistica de teste z: {z}\nValor critico: {pontoCritico} {menssege}"
 
     @staticmethod
     def tau_coefficient( matrix_confusion):

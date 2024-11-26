@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-from controllers import MinimumDistanceClassifier, BayesClassifier, RandomColors, Capture, QualityMetrics  # Importando diretamente do pacote controllers
+# Importando diretamente do pacote controllers
+from controllers import MinimumDistanceClassifier, BayesClassifier, Perceptron, RandomColors, Capture, QualityMetrics
 import os
 import shutil
 from itertools import combinations
@@ -18,7 +19,7 @@ CORS(app)
 capture = Capture()
 colors = RandomColors()
 minimumDistanceClassifier = MinimumDistanceClassifier()
-perceptronsimples = None
+perceptronsimples =  Perceptron()
 perceptrondelta = None
 bayesClassifier = BayesClassifier()
 neuralnetworks = None
@@ -430,15 +431,14 @@ def get_boltzmanMachine():
 def send_plot(model, path):
     return send_from_directory(model, path)
 
-@app.route('/api/metrics/<model1>/<model2>', methods=['GET'])
+@app.route('/api/metrics/<model1>/<model2>', methods=['POST'])
 def metrics_models(model1, model2):
     global capture, colors, minimumDistanceClassifier, perceptronsimples, perceptrondelta, bayesClassifier, neuralnetworks, partitionalcluster, boltzmanmachine
-    print("model", model1, model2)
-    
+
     if capture.data is not None:
         # Verificar se os modelos passados existem no mapeamento
         if model1.lower() not in model_map or model2.lower() not in model_map:
-            return jsonify({"error": "Model not found"}), 400 
+            return jsonify({"error": "Model not found"}), 400
         
         # Obter os objetos correspondentes
         model_1 = model_map[model1.lower()]
@@ -447,13 +447,10 @@ def metrics_models(model1, model2):
         # Verificar se os objetos foram instanciados corretamente
         if model_1 is None or model_2 is None:
             return jsonify({"error": "Model instance not found"}), 500
-
-        print("!", model_1.getData(), "@", model_2.getData(), "\n")
         
         # Obter matrizes de confusão
         matrix_confusion1 = model_1.getMatrizConfusion()
         matrix_confusion2 = model_2.getMatrizConfusion()
-        print('matrix_confusion', matrix_confusion1, " ", matrix_confusion2)
         
         # Calcular métricas para os dois modelos
         metrics1 = calcular_metricas(matrix_confusion1)
@@ -469,17 +466,23 @@ def metrics_models(model1, model2):
             for metric in metrics1
         ]
         
+        # Obter o valor de alpha do corpo da requisição (ou usar valor padrão)
+        data = request.get_json()
+        alpha = data.get("alpha", 0)
+
+        # Validar alpha
+        if not (0 < alpha < 1):
+            return jsonify({"error": "Invalid alpha value. It must be between 0 and 1."}), 400
+        
         # Calcular hipótese
-        alpha = 0.05
-        hipotese = {"Hipotese": QualityMetrics.significanceTest(
+        hipotese = [QualityMetrics.significanceTest(
             metrics1["Kappa coefficient"],
             metrics2["Kappa coefficient"],
             metrics1["Var kappa coefficient"],
             metrics2["Var kappa coefficient"],
-            len(capture.x_test),
             alpha
-        )}
-            
+        )]
+
         # Criar resposta
         response_data = {
             "message": "Modelo LinearDiscriminant criado",
@@ -487,14 +490,14 @@ def metrics_models(model1, model2):
             "Metrics": metrics_output,
             "Hipotese": hipotese
         }
-            
-        return jsonify(response_data)
-    
-    return jsonify({"error": "Failed to calculate metrics"}), 500
 
+        return jsonify(response_data)
+
+    return jsonify({"error": "Failed to calculate metrics"}), 500
 
 @app.route('/api/metrics/<model>', methods=['GET'])
 def metrics_model(model):
+    global capture, colors, minimumDistanceClassifier, perceptronsimples, perceptrondelta, bayesClassifier, neuralnetworks, partitionalcluster, boltzmanmachine
     if capture.data is not None:
         # Verificar se os modelos passados existem no mapeamento
         if model.lower() not in model_map:
