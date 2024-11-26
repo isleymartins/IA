@@ -96,6 +96,7 @@ const Menu: React.FC = () => {
 
   const [open, setOpen] = React.useState(false);
   const [pagesNumber, setPagesNumber] = React.useState(0);
+  const [pageModel, setPageModel] = React.useState<string>("minimumdistanceclassifier");
   const [showCard, setShowCard] = React.useState(false);
   const [fileUploadForm, setTempFormData] = React.useState<Form>({ testCase: 0, feature: '', file: null })
 
@@ -167,37 +168,22 @@ const Menu: React.FC = () => {
     // handleToggleCard(); // Fechar o card após submissão
   };
 
-  const pages = (value: number) => {
-    switch (value) {
-      case 0:
-        return <FormComponent index={value} model="minimumdistanceclassifier" />;
-      case 1:
-        return <FormComponent index={value} model="" />;
-      case 2:
-        return <FormComponent index={value} model="" />;
-      case 3:
-        return <FormComponent index={value} model="bayesclassifier" />;
-      case 4:
-        return <FormComponent index={value} model="" />;
-      case 5:
-        return <FormComponent index={value} model="" />;
-      case 6:
-        return <FormComponent index={value} model="" />;
-      default:
-        return 'Não encontrado';
-    }
-  };
-
-  const titulo = [
-    { label: "Distancia Minima", icon: <Explore /> },
-    { label: "Perceptron Simples", icon: <DisplaySettings /> },
-    { label: "Perceptron com Regra Delta", icon: <FindReplace /> },
-    { label: "Classificador de Bayes", icon: <JoinInner /> },
-    { label: "Rede Neurais com Backpropagation", icon: <Diversity2 /> },
-    { label: "Cluster Particional", icon: <BubbleChart /> },
-    { label: "Maquina de Boltzman", icon: <Hub /> }
+ interface Title{
+    label:string 
+    icon:any 
+    modelId:string
+  }
+  const titulo: Title []= [
+    { label: "Distancia Minima", icon: <Explore />, modelId: "minimumdistanceclassifier" },
+    { label: "Perceptron Simples", icon: <DisplaySettings />, modelId: "perceptronsimples" },
+    { label: "Perceptron com Regra Delta", icon: <FindReplace />, modelId: "perceptrondelta" },
+    { label: "Classificador de Bayes", icon: <JoinInner />, modelId: "bayesClassifier" },
+    { label: "Rede Neurais com Backpropagation", icon: <Diversity2 />, modelId: "neuralnetworks" },
+    { label: "Cluster Particional", icon: <BubbleChart />, modelId: "partitionalcluster" },
+    { label: "Maquina de Boltzman", icon: <Hub />, modelId: "boltzmanmachine" }
   ];
 
+  console.log(pageModel,"!",modelPrediction.find((respose:ModelPrediction) => respose.id === pageModel))
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -241,9 +227,21 @@ const Menu: React.FC = () => {
         <Divider />
         <List>
           {titulo.map((text, index) => (
-            <ListItem key={text.label} disablePadding >
-              <ListItemButton onClick={() => setPagesNumber(index)} >
-                <ListItemIcon>{text.icon}</ListItemIcon>
+            <ListItem key={text.label} disablePadding  >
+              <ListItemButton onClick={() => {
+                setPagesNumber(index)
+                setPageModel(text.modelId)
+              }}
+                selected={pagesNumber === index}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: theme.palette.primary.main, // Cor personalizada quando selecionado
+                    color: theme.palette.common.white, // Cor do texto quando selecionado
+                  },
+                }}>
+                <ListItemIcon sx={{
+                  color: pagesNumber === index ? theme.palette.common.white : 'inherit', // Cor do ícone quando selecionado
+                }}>{text.icon}</ListItemIcon>
                 <ListItemText primary={text.label} />
               </ListItemButton>
             </ListItem>
@@ -273,7 +271,10 @@ const Menu: React.FC = () => {
             </CardComponent>
           </Box>
         )}
-        {pages(pagesNumber)}
+        <FormComponent
+          modelId={pageModel}
+          model={modelPrediction.find((respose:ModelPrediction) => respose.id === pageModel)} 
+        />;
       </Main>
     </Box>
   );

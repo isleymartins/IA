@@ -11,6 +11,7 @@ export interface ModelPrediction {
     test: any[];
     confusionMatrix: number[];
     plots: Blob[];
+    id: string,
     qualityMetrics: any
 }
 

@@ -22,7 +22,7 @@ export const fetchImage = async (path: string): Promise<Blob | undefined> => {
 export const fetchModel = async (model: string): Promise<ModelPrediction | undefined> => {
   try {
     const response = await axios.get(`${apiUrl}/api/${model}`);
-    const { Name, Model, Precision, Train, Plots } = response.data;
+    const { Name, Model, Precision, Train, Plots, Id } = response.data;
 
     const blobs: Blob[] = [];
     for (const imagePath of Plots) {
@@ -40,6 +40,7 @@ export const fetchModel = async (model: string): Promise<ModelPrediction | undef
       model: Model,
       test: Train,
       plots: blobs,
+      id: Id,
       confusionMatrix: Array.isArray(Precision) ? [...Precision] : [],
       qualityMetrics: qualityMetrics
     };

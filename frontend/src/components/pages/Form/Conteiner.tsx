@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import TableData from '../../Table';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { QualityMetrics } from "../../../model/model";
+import { ModelPrediction, QualityMetrics } from "../../../model/model";
 import { fetchQualityMetrics } from "../../../service/axios";
 import { AuthContext } from "../../../context/AuthContext";
 import { Paper } from '@mui/material';
@@ -23,10 +23,10 @@ const Item = styled(Paper)(({ theme }) => ({
   }),
 }));
 interface FormComponentProp {
-  index: number
-  model: string
+  modelId: string
+  model: ModelPrediction | undefined
 }
-const FormComponent: React.FC<FormComponentProp> = ({ index, model }: FormComponentProp) => {
+const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComponentProp) => {
   const [value, setValue] = useState(0);
   const [loadingMetrics, setLoadingMetrics] = useState<boolean>(false);
   const [loadingModel, setLoadingModel] = useState<boolean>(false);
@@ -35,76 +35,79 @@ const FormComponent: React.FC<FormComponentProp> = ({ index, model }: FormCompon
 
   const authContext = useContext(AuthContext);
 
-  const { fileData, setFileData, formData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext;
+  const { formData } = authContext;
 
   const handleChangeBar = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 
   const handleChange = (event: any) => { setSelectedOption(event.target.value); };
-
-  console.log(index, "!", modelPrediction[index], "!", modelPrediction)
+// console.log(model)
   return (
     <Box sx={{ borderImageSlice: 'red', width: '70vw' }}>
 
 
       <Grid container spacing={2} >
         {
-          modelPrediction[index]?.model?.length > 0 && <Grid >
-            <Item key={index}>
-              <TableData row={modelPrediction[index]?.model} feature={formData.feature} title="Modelo" />
+          !model ? <Grid size={12}>
+            <Item key={`${modelId}_0`}>
+              <Warning />
+              <Typography> Adicione os dados</Typography>
             </Item>
+          </Grid> :
+            <>
+              {
+                model?.model?.length > 0 && <Grid >
+                  <Item key={`${modelId}_1`}>
+                    <TableData row={model?.model} feature={formData.feature} title="Modelo" />
+                  </Item>
 
-          </Grid>
-        }
-        {
-          modelPrediction[index]?.confusionMatrix?.length > 0 && <Grid >
-            <Item key={index}>
-              <TableData row={modelPrediction[index]?.confusionMatrix} feature={formData.feature} title="Matriz de confusão" />
-            </Item>
-          </Grid>
-        }
-        {
-          modelPrediction[index]?.test?.length > 0 && <Grid >
-            <Item key={index}>
-              <TableData row={modelPrediction[index]?.test} feature={formData.feature} title="Dados de Teste" />
-            </Item>
-          </Grid>
-        }
-        {
-          modelPrediction[index] && <Grid>
-            <Item key={index}>
-              <Stepper item={modelPrediction[index]?.plots} />
-            </Item>
-          </Grid>
-        }
-        {
-          modelPrediction[index] && <Grid>
-            <Item key={index}>
-              <TableData row={modelPrediction[index].qualityMetrics} feature={formData.feature} title="Metricas de Quallidade" />
-              {/*<Typography>
+                </Grid>
+              }
+              {
+                model?.confusionMatrix?.length > 0 && <Grid >
+                  <Item key={`${modelId}_2`}>
+                    <TableData row={model?.confusionMatrix} feature={formData.feature} title="Matriz de confusão" />
+                  </Item>
+                </Grid>
+              }
+              {
+                model?.test?.length > 0 && <Grid >
+                  <Item key={`${modelId}_3`}>
+                    <TableData row={model?.test} feature={formData.feature} title="Dados de Teste" />
+                  </Item>
+                </Grid>
+              }
+              {
+                model && <Grid>
+                  <Item key={`${modelId}_4`}>
+                    <Stepper item={model?.plots} />
+                  </Item>
+                </Grid>
+              }
+              {
+                model && <Grid>
+                  <Item key={`${modelId}_5`}>
+                    <TableData row={model.qualityMetrics} feature={formData.feature} title="Metricas de Quallidade" />
+                    {/*<Typography>
               {metrics?.hipotese
                 ? typeof metrics.hipotese === 'object'
                   ? JSON.stringify(metrics.hipotese) // Converte para string se for objeto
                   : metrics.hipotese // Exibe diretamente se for texto ou número
                 : "Hipótese não disponível"}
             </Typography>*/}
-            </Item>
-          </Grid>
+                  </Item>
+                </Grid>
+              }
+              {
+                model && <Grid>
+                  <Item key={`${modelId}_6`}>
+                    <HipoteseComponent model={modelId} />
+                  </Item>
+                </Grid>
+              }
+            </>
         }
-        {
-          modelPrediction[index] && <Grid>
-            <Item key={index}>
-              <HipoteseComponent model={model} />
-            </Item>
-          </Grid>
-        }
-        {!modelPrediction[index]&& <Grid size={12}>
-            <Item key={index}>
-              <Warning/>
-              <Typography> Adicione os dados</Typography>
-            </Item>
-          </Grid>}
       </Grid>
 
     </Box>

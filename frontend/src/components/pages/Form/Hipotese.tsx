@@ -22,13 +22,12 @@ const HipoteseComponent: React.FC<FormComponentProp> = ({model}:FormComponentPro
 
     const options = [
         { label: "Distancia Minima", value: "minimumdistanceclassifier" },
-        { label: "Perceptron Simples", value: ""},
-        { label: "Perceptron com Regra Delta", value: "" },
+        { label: "Perceptron Simples", value: "perceptronsimples"},
+        { label: "Perceptron com Regra Delta", value: "perceptrondelta" },
         { label: "Classificador de Bayes", value:"bayesclassifier" },
-        { label: "Rede Neurais com Backpropagation", value: ""},
-        { label: "Cluster Particional", value: "" },
-        { label: "Maquina de Boltzman", value: "" },
-        { label: "Teste de Hipoteses", value: "" },
+        { label: "Rede Neurais com Backpropagation", value: "neuralnetworks"},
+        { label: "Cluster Particional", value: "partitionalcluster" },
+        { label: "Maquina de Boltzman", value: "boltzmanmachine" }
     ];
     const [selectedOption, setSelectedOption] = React.useState('');
     const handleChange = (event: any) => { setSelectedOption(event.target.value); };
