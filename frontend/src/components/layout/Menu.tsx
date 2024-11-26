@@ -40,6 +40,7 @@ import QualityMetricsComponent from '../pages/QualityMetrics/Conteiner';
 import { FileInformation, Form, ModelPrediction } from "../../model/model";
 import { fetchUpload, fetchModel } from "../../service/axios";
 import { AuthContext } from "../../context/AuthContext";
+import HipoteseComponent from "../pages/Form/Hipotese";
 
 const drawerWidth = 240;
 
@@ -123,7 +124,7 @@ const Menu: React.FC = () => {
   };
 
   const allModels = async () => {
-    const models: ModelPrediction[] =[]
+    const models: ModelPrediction[] = []
 
     for (const model of directory) {
       await fetchModel(model)
@@ -134,7 +135,7 @@ const Menu: React.FC = () => {
         })
     }
     setModelPrediction([...models])
-    console.log("allModels",modelPrediction)
+    console.log("allModels", modelPrediction)
   }
 
 
@@ -157,7 +158,7 @@ const Menu: React.FC = () => {
         setDirectory(response.models)
         //Chamada de modelos
         allModels()
-        console.log("Menu",response)
+        console.log("Menu", response)
 
 
       }
@@ -184,8 +185,10 @@ const Menu: React.FC = () => {
         return <FormComponent index={value} model="" />;
       case 5:
         return <FormComponent index={value} model="" />;
-      /*case 2:
-        return <QualityMetricsComponent />;*/
+      case 6:
+        return <FormComponent index={value} model="" />;
+      case 7:
+        return <HipoteseComponent  />;
       default:
         return 'Não encontrado';
     }
@@ -199,6 +202,7 @@ const Menu: React.FC = () => {
     { label: "Rede Neurais com Backpropagation", icon: <Diversity2 /> },
     { label: "Cluster Particional", icon: <BubbleChart /> },
     { label: "Maquina de Boltzman", icon: <Hub /> },
+    { label: "Teste de Hipoteses", icon: <Hub /> },
   ];
 
   return (
