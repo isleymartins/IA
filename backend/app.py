@@ -41,7 +41,36 @@ def convert_to_serializable(model, capture,attributes):
         item[capture.feature] = capture.transcribe(pd.Series([item[capture.feature]]))[0]
     
     return model
+ # Função para calcular todas as métricas
+def calcular_metricas(matrix_confusion):
+    if capture.getClassifications() is not None:
+        if len(matrix_confusion) > 0:
+            # Obter a lista de classes traduzidas (ex: nomes originais das classes)
+            classes = capture.getClassifications()
+            # Obter acurácias do produtor e usuário
+            producer_accuracies = QualityMetrics.producer_accuracy(matrix_confusion)
+            user_accuracies = QualityMetrics.user_accuracy(matrix_confusion)
 
+            # Criar dicionários para associar classes aos valores
+            producer_accuracy = {classes[i+1]: producer_accuracies[i] for i in range(len(producer_accuracies))}
+            user_accuracy = {classes[i+1]: user_accuracies[i] for i in range(len(user_accuracies))}
+            
+            return {
+                "Producer accuracy": producer_accuracy,
+                "User accuracy": user_accuracy,
+                "Global accuracy": QualityMetrics.global_accuracy(matrix_confusion),
+                "Causal accuracy": QualityMetrics.causal_accuracy(matrix_confusion),
+                "Kappa coefficient": QualityMetrics.kappa_coefficient(matrix_confusion),
+                "Var kappa coefficient": QualityMetrics.var_kappa_coefficient(matrix_confusion),
+                "Var kappa coefficient_advanced": QualityMetrics.var_kappa_coefficient_advanced(matrix_confusion),
+                "Precision": QualityMetrics.precision(matrix_confusion),
+                "Recall": QualityMetrics.recall(matrix_confusion),
+                "F Score 1/2": QualityMetrics.f_score(0.5, matrix_confusion),
+                "F Score 1": QualityMetrics.f_score(1, matrix_confusion),
+                "F Score 2": QualityMetrics.f_score(2, matrix_confusion)
+            }
+    else:
+        return None
 
 # Rotas
 
@@ -202,7 +231,7 @@ def send_plot(model, path):
     return send_from_directory(model, path)
 
 @app.route('/api/metrics/<model1>/<model2>', methods=['GET'])
-def metrics_model(model1, model2):
+def metrics_models(model1, model2):
     # Verificar se os modelos passados existem no mapeamento
     if model1.lower() not in model_map or model2.lower() not in model_map:
         return jsonify({"error": "Model not found"}), 400 
@@ -214,37 +243,6 @@ def metrics_model(model1, model2):
     # Obter matrizes de confusão
     matrix_confusion1 = model_1.getMatrizConfusion()
     matrix_confusion2 = model_2.getMatrizConfusion()
-
-    # Função para calcular todas as métricas
-    def calcular_metricas(matrix_confusion):
-        
-        if capture.getClassifications() is not None and len(matrix_confusion) > 0:
-            # Obter a lista de classes traduzidas (ex: nomes originais das classes)
-            classes = capture.getClassifications()
-            # Obter acurácias do produtor e usuário
-            producer_accuracies = QualityMetrics.producer_accuracy(matrix_confusion)
-            user_accuracies = QualityMetrics.user_accuracy(matrix_confusion)
-
-            # Criar dicionários para associar classes aos valores
-            producer_accuracy = {classes[i+1]: producer_accuracies[i] for i in range(len(producer_accuracies))}
-            user_accuracy = {classes[i+1]: user_accuracies[i] for i in range(len(user_accuracies))}
-            
-            return {
-                "Producer accuracy": producer_accuracy,
-                "User accuracy": user_accuracy,
-                "Global accuracy": QualityMetrics.global_accuracy(matrix_confusion),
-                "Causal accuracy": QualityMetrics.causal_accuracy(matrix_confusion),
-                "Kappa coefficient": QualityMetrics.kappa_coefficient(matrix_confusion),
-                "Var kappa coefficient": QualityMetrics.var_kappa_coefficient(matrix_confusion),
-                "Var kappa coefficient_advanced": QualityMetrics.var_kappa_coefficient_advanced(matrix_confusion),
-                "Precision": QualityMetrics.precision(matrix_confusion),
-                "Recall": QualityMetrics.recall(matrix_confusion),
-                "F Score 1/2": QualityMetrics.f_score(0.5, matrix_confusion),
-                "F Score 1": QualityMetrics.f_score(1, matrix_confusion),
-                "F Score 2": QualityMetrics.f_score(2, matrix_confusion)
-            }
-        else:
-            return None
     
     # Calcular métricas para os dois modelos
     metrics1 = calcular_metricas(matrix_confusion1)
@@ -269,13 +267,41 @@ def metrics_model(model1, model2):
     # Criar resposta
     response_data = {
         "message": "Modelo LinearDiscriminant criado",
-        "Name": "Distancia Minima",
+        "Name": "Metricas de qualidade",
         "Metrics": metrics_output,
         "Hipotese": hipotese
     }
         
     return jsonify(response_data)
 
+@app.route('/api/metrics/<model>', methods=['GET'])
+def metrics_model(model):
+    # Verificar se os modelos passados existem no mapeamento
+    if model.lower() not in model_map:
+        return jsonify({"error": "Model not found"}), 400 
+    
+    # Obter os objetos correspondentes
+    model_1 = model_map[model.lower()]
+
+    # Obter matrizes de confusão
+    matrix_confusion = model_1.getMatrizConfusion()
+
+    # Calcular métricas para os dois modelos
+    metrics1 = calcular_metricas(matrix_confusion)
+
+    # Ajustar a estrutura das métricas para o formato desejado
+    metrics_output = [
+        {"Quality Metrics": metric, f"{model}": metrics1[metric]}
+        for metric in metrics1
+    ]
+    # Criar resposta
+    response_data = {
+        "message": "Modelo LinearDiscriminant criado",
+        "Name": "Metricas de qualidade",
+        "Metrics": metrics_output
+    }
+        
+    return jsonify(response_data)
 
 
 
