@@ -211,10 +211,10 @@ def get_bayesClassifier():
             for species, features in predictions.transpose().items()
         ]
 
-        folder = f'{directory}bayesClassifier'
+        folder = f'{directory}bayesclassifier'
         prepare_directory(folder)
 
-        precision =bayesClassifier.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+        precision = bayesClassifier.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
 
         #Possibilidade de itens para combinação
         columns = list(capture.x_test.columns)
@@ -232,7 +232,7 @@ def get_bayesClassifier():
             "Train": train,
             "Precision": precision,
             "Plots": plots,
-            "Id" : "bayesClassifier"
+            "Id" : "bayesclassifier"
         }
 
         return jsonify(response_data)

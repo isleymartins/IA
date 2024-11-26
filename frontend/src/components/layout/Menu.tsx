@@ -23,8 +23,6 @@ import {
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
-  TransformSharp,
-  Balance,
   BubbleChart,
   DisplaySettings,
   Diversity2,
@@ -177,7 +175,7 @@ const Menu: React.FC = () => {
     { label: "Distancia Minima", icon: <Explore />, modelId: "minimumdistanceclassifier" },
     { label: "Perceptron Simples", icon: <DisplaySettings />, modelId: "perceptronsimples" },
     { label: "Perceptron com Regra Delta", icon: <FindReplace />, modelId: "perceptrondelta" },
-    { label: "Classificador de Bayes", icon: <JoinInner />, modelId: "bayesClassifier" },
+    { label: "Classificador de Bayes", icon: <JoinInner />, modelId: "bayesclassifier" },
     { label: "Rede Neurais com Backpropagation", icon: <Diversity2 />, modelId: "neuralnetworks" },
     { label: "Cluster Particional", icon: <BubbleChart />, modelId: "partitionalcluster" },
     { label: "Maquina de Boltzman", icon: <Hub />, modelId: "boltzmanmachine" }
