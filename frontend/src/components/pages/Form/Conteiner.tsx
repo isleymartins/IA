@@ -9,9 +9,10 @@ import { Paper } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { styled } from '@mui/material/styles';
 import Stepper from './Stepper';
+import HipoteseComponent from './Hipotese';
 
 const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: '#fff',
+  backgroundColor: theme.palette.background.paper,
   ...theme.typography.body2,
   padding: theme.spacing(1),
   textAlign: 'center',
@@ -28,6 +29,8 @@ const FormComponent: React.FC<FormComponentProp> = ({ index, model }: FormCompon
   const [value, setValue] = useState(0);
   const [loadingMetrics, setLoadingMetrics] = useState<boolean>(false);
   const [loadingModel, setLoadingModel] = useState<boolean>(false);
+  const [metrics, setMetrics] = useState<QualityMetrics>();
+  const [selectedOption, setSelectedOption] = React.useState('');
 
   const authContext = useContext(AuthContext);
 
@@ -37,44 +40,64 @@ const FormComponent: React.FC<FormComponentProp> = ({ index, model }: FormCompon
     setValue(newValue);
   };
 
-  console.log(index, "!", modelPrediction[index],"!",modelPrediction)
+  const handleChange = (event: any) => { setSelectedOption(event.target.value); };
+
+  console.log(index, "!", modelPrediction[index], "!", modelPrediction)
   return (
     <Box sx={{ borderImageSlice: 'red', width: '70vw' }}>
 
 
-      <Grid container spacing={2}>
-        <Grid >
-          <Item key={index}>
-            {modelPrediction[index]?.model?.length > 0 && <TableData row={modelPrediction[index]?.model} feature={formData.feature} title="Modelo" />}
-          </Item>
-        </Grid>
-        <Grid >
-          <Item key={index}>
-            {modelPrediction[index]?.confusionMatrix?.length > 0 && <TableData row={modelPrediction[index]?.confusionMatrix} feature={formData.feature} title="Matriz de confusão" />}
-          </Item>
-        </Grid>
-        <Grid >
-          <Item key={index}>
-            {modelPrediction[index]?.test?.length > 0 && <TableData row={modelPrediction[index]?.test} feature={formData.feature} title="Dados de Teste" />}
-          </Item>
-        </Grid>
-        <Grid>
-          <Item key={index}>
-            {modelPrediction[index] && <Stepper item={modelPrediction[index]?.plots} />}
-          </Item>
-        </Grid>
-        <Grid>
-          <Item key={index}>
-            {modelPrediction[index] && <TableData row={modelPrediction[index].qualityMetrics} feature={formData.feature} title="Metricas de Quallidade" />}
-            {/*<Typography>
+      <Grid container spacing={2} >
+        {
+          modelPrediction[index]?.model?.length > 0 && <Grid >
+            <Item key={index}>
+              <TableData row={modelPrediction[index]?.model} feature={formData.feature} title="Modelo" />
+            </Item>
+
+          </Grid>
+        }
+        {
+          modelPrediction[index]?.confusionMatrix?.length > 0 && <Grid >
+            <Item key={index}>
+              <TableData row={modelPrediction[index]?.confusionMatrix} feature={formData.feature} title="Matriz de confusão" />
+            </Item>
+          </Grid>
+        }
+        {
+          modelPrediction[index]?.test?.length > 0 && <Grid >
+            <Item key={index}>
+              <TableData row={modelPrediction[index]?.test} feature={formData.feature} title="Dados de Teste" />
+            </Item>
+          </Grid>
+        }
+        {
+          modelPrediction[index] && <Grid>
+            <Item key={index}>
+              <Stepper item={modelPrediction[index]?.plots} />
+            </Item>
+          </Grid>
+        }
+        {
+          modelPrediction[index] && <Grid>
+            <Item key={index}>
+              <TableData row={modelPrediction[index].qualityMetrics} feature={formData.feature} title="Metricas de Quallidade" />
+              {/*<Typography>
               {metrics?.hipotese
                 ? typeof metrics.hipotese === 'object'
                   ? JSON.stringify(metrics.hipotese) // Converte para string se for objeto
                   : metrics.hipotese // Exibe diretamente se for texto ou número
                 : "Hipótese não disponível"}
             </Typography>*/}
-          </Item>
-        </Grid>
+            </Item>
+          </Grid>
+        }
+        {
+          modelPrediction[index] && <Grid>
+            <Item key={index}>
+              <HipoteseComponent model={model} />
+            </Item>
+          </Grid>
+        }
       </Grid>
 
     </Box>

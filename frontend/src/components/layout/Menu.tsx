@@ -172,14 +172,12 @@ const Menu: React.FC = () => {
   const pages = (value: number) => {
     switch (value) {
       case 0:
-        console.log("entrou1")
         return <FormComponent index={value} model="minimumdistanceclassifier" />;
       case 1:
         return <FormComponent index={value} model="" />;
       case 2:
         return <FormComponent index={value} model="" />;
       case 3:
-        console.log("entrou2")
         return <FormComponent index={value} model="bayesclassifier" />;
       case 4:
         return <FormComponent index={value} model="" />;
@@ -187,8 +185,6 @@ const Menu: React.FC = () => {
         return <FormComponent index={value} model="" />;
       case 6:
         return <FormComponent index={value} model="" />;
-      case 7:
-        return <HipoteseComponent  />;
       default:
         return 'Não encontrado';
     }
@@ -201,8 +197,7 @@ const Menu: React.FC = () => {
     { label: "Classificador de Bayes", icon: <JoinInner /> },
     { label: "Rede Neurais com Backpropagation", icon: <Diversity2 /> },
     { label: "Cluster Particional", icon: <BubbleChart /> },
-    { label: "Maquina de Boltzman", icon: <Hub /> },
-    { label: "Teste de Hipoteses", icon: <Hub /> },
+    { label: "Maquina de Boltzman", icon: <Hub /> }
   ];
 
   return (
@@ -280,7 +275,7 @@ const Menu: React.FC = () => {
             </CardComponent>
           </Box>
         )}
-        <Paper>{pages(pagesNumber)}</Paper>
+        {pages(pagesNumber)}
       </Main>
     </Box>
   );

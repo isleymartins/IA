@@ -41,13 +41,11 @@ export default function Stepper({ item }: any) {
                     alignItems: 'center',
                     height: 50,
                     pl: 2,
-                    bgcolor: 'background.paper',
-                    backgroundColor:'background.paper'
                 }}
             >
-                {/*<Typography>{steps[activeStep]?.label}</Typography>*/}
+                <Typography variant='h6'>Imagens para analise de dispesão</Typography>
             </Paper>
-            <Box sx={{/* height: 255, maxWidth: 400, width: '100%',*/ p: 2 }}>
+            <Box sx={{ p: 2 }}>
                 {steps[activeStep]?.description}
             </Box>
             <MobileStepper 
