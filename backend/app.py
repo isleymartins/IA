@@ -125,12 +125,12 @@ def upload_file():
         # Converte para um valor de 0 a 1
         testCase = float(request.form['testCase']) / 100  
 
-        # Inicializa a instância da classe `Capture` e usar setData e shareData
+        # Inicializa a instância da classe `Capture` e usar setData e shareData "perceptrondelta", , "neuralnetworks", "partitionalcluster","boltzmanmachine"
         capture.setData(file, feature, file_extension)
         capture.shareData(feature, testCase)
         colors.setData(len(capture.y_train.unique()))
 
-        models = ["minimumdistanceclassifier", "perceptronsimples", "perceptrondelta", "bayesclassifier", "neuralnetworks", "partitionalcluster","boltzmanmachine"]
+        models = ["minimumdistanceclassifier", "perceptronsimples",  "bayesclassifier"]
         return jsonify({"message": "O arquivo foi passado corretamente", "data": len(capture.getData().to_dict(orient='records')),"test": len(capture.y_test), "models": models}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400
@@ -228,7 +228,7 @@ def get_bayesClassifier():
         for idx, (col1, col2) in enumerate(combinations(columns, 2)):
             plot_path = bayesClassifier.plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
             plots.append(plot_path)
-
+        
         response_data = {
             "message": "Modelo bayesClassifier criado",
             "Name": "Classificador de Bayes",
@@ -245,39 +245,61 @@ def get_bayesClassifier():
 
 #Rota do algoritmo do classificador de Perceptron Simples
 @app.route('/api/perceptronsimples', methods=['GET'])
-
 def get_perceptronSimples():
-    global capture, colors
-    #Verifica se tem dados
+    global capture, perceptronsimples, colors
     if capture.data is not None:
+        # Treina o modelo
+        perceptronsimples.setData(capture.x_train, capture.y_train, capture.feature)
+        
+       
+        # Predição
+        '''predictions = perceptronsimples.fit(capture.x_test) 
+        # Transcreve para os nomes das classes
+        predictions["Prediction"] = capture.transcribe(predictions["Prediction"])
+        '''
+        # Modelo treinado
+        model = perceptronsimples.getData()
+        #Adaptar para json
+        model["weights"] = model["weights"].tolist()
+        model["bias"] = model["bias"].tolist()
 
-        folder = f'{directory}perceptronsimples'
+        ''' # Organizar dados de treinamento para resposta
+        train = [
+            {**features}
+            for species, features in predictions.transpose().items()
+        ]'''
+        
+        # Criar diretório para plots
+        folder = f'{directory}/perceptronsimples'
         prepare_directory(folder)
 
-        precision= None#.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+        # Calcula precisão (confusão)
+        #precision = perceptronsimples.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
 
-        #Possibilidade de itens para combinação
+        # Obter nomes das colunas
         columns = list(capture.x_test.columns)
         plots = []
 
-        #combinação dos atributos
-        #for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            #plot_path = .plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
-            #plots.append(plot_path)
-
+        # Gerar combinações de atributos para os gráficos
+        '''for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = perceptronsimples.plot(colors.getData(), col1, col2, capture.x_test, capture.getClassifications(), f'{idx}', folder)
+            plots.append(plot_path)'''
+        print("Model",model)
+        # Resposta
         response_data = {
             "message": "Modelo perceptron Simples criado",
             "Name": "Classificador Perceptron Simples",
             "Model": model,
-            "Train": train,
-            "Precision": precision,
+            "Train": '''train''',
+            "Precision": '''precision''',
             "Plots": plots,
-            "Id" : "perceptronsimples"
+            "Id": "perceptronsimples"
         }
 
         return jsonify(response_data)
     else:
         return jsonify({"message": "Invalid data"}), 400
+
 
 #Rota do algoritmo do classificador de Perceptron com Delta
 @app.route('/api/perceptrondelta', methods=['GET'])
