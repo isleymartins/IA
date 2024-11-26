@@ -63,11 +63,14 @@ def calcular_metricas(matrix_confusion):
                 "Kappa coefficient": QualityMetrics.kappa_coefficient(matrix_confusion),
                 "Var kappa coefficient": QualityMetrics.var_kappa_coefficient(matrix_confusion),
                 "Var kappa coefficient_advanced": QualityMetrics.var_kappa_coefficient_advanced(matrix_confusion),
+                "Tau coefficient": QualityMetrics.tau_coefficient(matrix_confusion),
+                "Var Tau coefficient": QualityMetrics.var_tau_coefficient(matrix_confusion),
                 "Precision": QualityMetrics.precision(matrix_confusion),
                 "Recall": QualityMetrics.recall(matrix_confusion),
                 "F Score 1/2": QualityMetrics.f_score(0.5, matrix_confusion),
                 "F Score 1": QualityMetrics.f_score(1, matrix_confusion),
-                "F Score 2": QualityMetrics.f_score(2, matrix_confusion)
+                "F Score 2": QualityMetrics.f_score(2, matrix_confusion),
+                "Matthews coefficient": QualityMetrics.matthews_coefficient(matrix_confusion)
             }
     else:
         return None

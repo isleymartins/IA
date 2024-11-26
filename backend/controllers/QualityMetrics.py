@@ -70,34 +70,40 @@ class QualityMetrics:
         
         po = QualityMetrics.global_accuracy(matrix_confusion)
         pe = QualityMetrics.causal_accuracy(matrix_confusion)
+
+        # Total de elementos na matriz de confusão
         m = np.sum(matrix_confusion)
 
-        phi3_sum = 0
-        phi4_sum = 0
+        # Dimensões da matriz de confusão
         lines, columns = matrix_confusion.shape
 
+        # Cálculo de φ₃
+        phi3_sum = 0
         for i in range(lines):
-            a_i_plus = np.sum(matrix_confusion[i, :])
-            a_plus_i = np.sum(matrix_confusion[:, i])
-            phi3_sum += matrix_confusion[i, i] * (a_i_plus + a_plus_i)
+            a_i_plus = np.sum(matrix_confusion[i, :])  # Soma da linha i
+            a_plus_i = np.sum(matrix_confusion[:, i])  # Soma da coluna i
+            phi3_sum += a_i_plus * a_plus_i
+        phi3 = phi3_sum / (m ** 2)
 
-        phi3 = (1 / m**2) * phi3_sum
-
+        # Cálculo de φ₄
+        phi4_sum = 0
         for i in range(lines):
             for j in range(columns):
-                a_j_plus = np.sum(matrix_confusion[j, :])
-                a_plus_i = np.sum(matrix_confusion[:, i])
+                a_j_plus = np.sum(matrix_confusion[j, :])  # Soma da linha j
+                a_plus_i = np.sum(matrix_confusion[:, i])  # Soma da coluna i
                 phi4_sum += matrix_confusion[i, j] * (a_j_plus + a_plus_i)
+        phi4 = phi4_sum / (m ** 3)
 
-        phi4 = (1 / m**3) * phi4_sum
-
+        # Evitar divisões por zero
         if po == 1 or pe == 1:
             return 0
 
+        # Componentes da variância avançada
         p1 = (po * (1 - po)) / (m * ((1 - pe) ** 2))
         p2 = (2 * (1 - po) * ((2 * po * pe) - phi3)) / (m * ((1 - pe) ** 3))
-        p3 = (((1 - po) ** 2) * (phi4 - 4 * pe)) / (m * ((1 - pe) ** 4))
+        p3 = (((1 - po) ** 2) * (phi4 - 4 * (pe ** 2))) / (m * ((1 - pe) ** 4))
 
+        # Variância avançada
         return p1 + p2 + p3
 
 
@@ -145,4 +151,66 @@ class QualityMetrics:
             menssege = "Nao rejeitamos a hipotese nula"
 
         return f" Estatistica de teste z: {z} Valor critico: {pontoCritico} {menssege}"
+
+    @staticmethod
+    def tau_coefficient( matrix_confusion):
+        #Calcula o coeficiente Tau.
+        
+        po = QualityMetrics.global_accuracy(matrix_confusion)
+        c = len(matrix_confusion)
+
+        return (po - (1/c) / (1 - (1/c)))
+
+    @staticmethod
+    def var_tau_coefficient(matrix_confusion):
+        #Calcula a variância do coeficiente Tau.
+        po = QualityMetrics.global_accuracy(matrix_confusion)
+        c = len(matrix_confusion)
+
+        # Total de elementos na matriz de confusão
+        m = np.sum(matrix_confusion)
+        return (1/m)*((po*(1-po))/((1-(1/c))**2))
+    
+    @staticmethod
+    def matthews_coefficient(matrix_confusion):
+        # Definir o número de classes
+        n = len(matrix_confusion)
+        
+        # Soma total de todos os elementos na matriz de confusão
+        total = np.sum(matrix_confusion)
+        
+        # Inicializar as somas para VP, FP, FN e VN
+        VP = FP = FN = VN = 0
+
+        for k in range(n):
+            # Verdadeiros Positivos (VP)
+            vp_k = matrix_confusion[k, k]
+            
+            # Falsos Positivos (FP) - soma da coluna k exceto o VP
+            fp_k = np.sum(matrix_confusion[:, k]) - vp_k
+            
+            # Falsos Negativos (FN) - soma da linha k exceto o VP
+            fn_k = np.sum(matrix_confusion[k, :]) - vp_k
+            
+            # Verdadeiros Negativos (VN) - soma total da matriz - (FP + FN + VP)
+            vn_k = total - (np.sum(matrix_confusion[:, k]) + np.sum(matrix_confusion[k, :]) - vp_k)
+            
+            # Acumulando os valores de VP, FP, FN e VN
+            VP += vp_k
+            FP += fp_k
+            FN += fn_k
+            VN += vn_k
+
+        # Cálculo do numerador
+        part1 = (VP * VN) - (FP * FN)
+        
+        # Cálculo do denominador
+        part2 = np.sqrt((VP + FP) * (VP + FN) * (VN + FP) * (VN + FN))
+        
+        # Evitar divisão por zero
+        if part2 == 0:
+            return 0
+        
+        return part1 / part2
+
 
