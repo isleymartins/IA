@@ -6,6 +6,7 @@ class Capture:
         self.data = None
         self.feature = None
         self.type = None
+        self.classifications = None
 
     def extract(self, path, file_type):
         # Definindo as extensões permitidas e suas funções de leitura

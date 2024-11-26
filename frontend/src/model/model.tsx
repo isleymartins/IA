@@ -31,3 +31,7 @@ export interface CardComponentProps {
 export interface QualityMetrics{
     metrics: any[]
 }
+export interface Hipotese{
+    metrics: any[]
+    hipotese: string
+}

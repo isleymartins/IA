@@ -84,6 +84,9 @@ def calcular_metricas(matrix_confusion):
                 "Matthews coefficient": QualityMetrics.matthews_coefficient(matrix_confusion)
             }
     else:
+        
+        
+        print("entrou")
         return None
 
 # Rotas
@@ -429,76 +432,97 @@ def send_plot(model, path):
 
 @app.route('/api/metrics/<model1>/<model2>', methods=['GET'])
 def metrics_models(model1, model2):
-    # Verificar se os modelos passados existem no mapeamento
-    if model1.lower() not in model_map or model2.lower() not in model_map:
-        return jsonify({"error": "Model not found"}), 400 
+    global capture, colors, minimumDistanceClassifier, perceptronsimples, perceptrondelta, bayesClassifier, neuralnetworks, partitionalcluster, boltzmanmachine
+    print("model", model1, model2)
     
-    # Obter os objetos correspondentes
-    model_1 = model_map[model1.lower()]
-    model_2 = model_map[model2.lower()]
+    if capture.data is not None:
+        # Verificar se os modelos passados existem no mapeamento
+        if model1.lower() not in model_map or model2.lower() not in model_map:
+            return jsonify({"error": "Model not found"}), 400 
+        
+        # Obter os objetos correspondentes
+        model_1 = model_map[model1.lower()]
+        model_2 = model_map[model2.lower()]
 
-    # Obter matrizes de confusão
-    matrix_confusion1 = model_1.getMatrizConfusion()
-    matrix_confusion2 = model_2.getMatrizConfusion()
+        # Verificar se os objetos foram instanciados corretamente
+        if model_1 is None or model_2 is None:
+            return jsonify({"error": "Model instance not found"}), 500
+
+        print("!", model_1.getData(), "@", model_2.getData(), "\n")
+        
+        # Obter matrizes de confusão
+        matrix_confusion1 = model_1.getMatrizConfusion()
+        matrix_confusion2 = model_2.getMatrizConfusion()
+        print('matrix_confusion', matrix_confusion1, " ", matrix_confusion2)
+        
+        # Calcular métricas para os dois modelos
+        metrics1 = calcular_metricas(matrix_confusion1)
+        metrics2 = calcular_metricas(matrix_confusion2)
+
+        # Verificar se as métricas foram calculadas corretamente
+        if metrics1 is None or metrics2 is None:
+            return jsonify({"error": "Failed to calculate metrics"}), 500
+
+        # Ajustar a estrutura das métricas para o formato desejado
+        metrics_output = [
+            {"Quality Metrics": metric, f"{model1}": metrics1[metric], f"{model2}": metrics2[metric]}
+            for metric in metrics1
+        ]
+        
+        # Calcular hipótese
+        alpha = 0.05
+        hipotese = {"Hipotese": QualityMetrics.significanceTest(
+            metrics1["Kappa coefficient"],
+            metrics2["Kappa coefficient"],
+            metrics1["Var kappa coefficient"],
+            metrics2["Var kappa coefficient"],
+            len(capture.x_test),
+            alpha
+        )}
+            
+        # Criar resposta
+        response_data = {
+            "message": "Modelo LinearDiscriminant criado",
+            "Name": "Metricas de qualidade",
+            "Metrics": metrics_output,
+            "Hipotese": hipotese
+        }
+            
+        return jsonify(response_data)
     
-    # Calcular métricas para os dois modelos
-    metrics1 = calcular_metricas(matrix_confusion1)
-    metrics2 = calcular_metricas(matrix_confusion2)
+    return jsonify({"error": "Failed to calculate metrics"}), 500
 
-    # Ajustar a estrutura das métricas para o formato desejado
-    metrics_output = [
-        {"Quality Metrics": metric, f"{model1}": metrics1[metric], f"{model2}": metrics2[metric]}
-        for metric in metrics1
-    ]
-    # Calcular hipótese
-    alpha = 0.05
-    hipotese = {"Hipotese": QualityMetrics.significanceTest(
-        metrics1["Kappa coefficient"],
-        metrics2["Kappa coefficient"],
-        metrics1["Var kappa coefficient"],
-        metrics2["Var kappa coefficient"],
-        len(capture.x_test),
-        alpha
-    )}
-        
-    # Criar resposta
-    response_data = {
-        "message": "Modelo LinearDiscriminant criado",
-        "Name": "Metricas de qualidade",
-        "Metrics": metrics_output,
-        "Hipotese": hipotese
-    }
-        
-    return jsonify(response_data)
 
 @app.route('/api/metrics/<model>', methods=['GET'])
 def metrics_model(model):
-    # Verificar se os modelos passados existem no mapeamento
-    if model.lower() not in model_map:
-        return jsonify({"error": "Model not found"}), 400 
-    
-    # Obter os objetos correspondentes
-    model_1 = model_map[model.lower()]
-
-    # Obter matrizes de confusão
-    matrix_confusion = model_1.getMatrizConfusion()
-
-    # Calcular métricas para os dois modelos
-    metrics1 = calcular_metricas(matrix_confusion)
-
-    # Ajustar a estrutura das métricas para o formato desejado
-    metrics_output = [
-        {"Quality Metrics": metric, f"{model}": metrics1[metric]}
-        for metric in metrics1
-    ]
-    # Criar resposta
-    response_data = {
-        "message": "Modelo LinearDiscriminant criado",
-        "Name": "Metricas de qualidade",
-        "Metrics": metrics_output
-    }
+    if capture.data is not None:
+        # Verificar se os modelos passados existem no mapeamento
+        if model.lower() not in model_map:
+            return jsonify({"error": "Model not found"}), 400 
         
-    return jsonify(response_data)
+        # Obter os objetos correspondentes
+        model_1 = model_map[model.lower()]
+
+        # Obter matrizes de confusão
+        matrix_confusion = model_1.getMatrizConfusion()
+
+        # Calcular métricas para os dois modelos
+        metrics1 = calcular_metricas(matrix_confusion)
+
+        # Ajustar a estrutura das métricas para o formato desejado
+        metrics_output = [
+            {"Quality Metrics": metric, f"{model}": metrics1[metric]}
+            for metric in metrics1
+        ]
+        # Criar resposta
+        response_data = {
+            "message": "Modelo LinearDiscriminant criado",
+            "Name": "Metricas de qualidade",
+            "Metrics": metrics_output
+        }
+            
+        return jsonify(response_data)
+    return jsonify({"error": "Failed to calculate metrics"}), 500
 
 
 

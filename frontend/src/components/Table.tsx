@@ -76,8 +76,8 @@ const renderNestedTable = (value: any, classes:any) => (
 const TableData = ({ row, feature, title }: Rows) => {
     const classes = useStyles();
 
-    const hasFeature = row.some(obj => feature in obj);
-    const hasPrediction = row.some(obj => 'Prediction' in obj);
+    const hasFeature = row?.some(obj => feature in obj);
+    const hasPrediction = row?.some(obj => 'Prediction' in obj);
 
     return (
         <TableContainer component={Paper} style={{ maxHeight: 400 }}>
