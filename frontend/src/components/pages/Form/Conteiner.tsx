@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, {  useContext } from 'react';
 import TableData from '../../Table';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { ModelPrediction, QualityMetrics } from "../../../model/model";
-import { fetchQualityMetrics } from "../../../service/axios";
+import { ModelPrediction } from "../../../model/model";
 import { AuthContext } from "../../../context/AuthContext";
 import { Paper } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -27,21 +26,11 @@ interface FormComponentProp {
   model: ModelPrediction | undefined
 }
 const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComponentProp) => {
-  const [value, setValue] = useState(0);
-  const [loadingMetrics, setLoadingMetrics] = useState<boolean>(false);
-  const [loadingModel, setLoadingModel] = useState<boolean>(false);
-  const [metrics, setMetrics] = useState<QualityMetrics>();
-  const [selectedOption, setSelectedOption] = React.useState('');
 
   const authContext = useContext(AuthContext);
 
   const { formData } = authContext;
 
-  const handleChangeBar = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
-  };
-
-  const handleChange = (event: any) => { setSelectedOption(event.target.value); };
 // console.log(model)
   return (
     <Box sx={{ borderImageSlice: 'red', width: '70vw' }}>
@@ -89,13 +78,6 @@ const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComp
                 model && <Grid>
                   <Item key={`${modelId}_5`}>
                     <TableData row={model.qualityMetrics} feature={formData.feature} title="Metricas de Quallidade" />
-                    {/*<Typography>
-              {metrics?.hipotese
-                ? typeof metrics.hipotese === 'object'
-                  ? JSON.stringify(metrics.hipotese) // Converte para string se for objeto
-                  : metrics.hipotese // Exibe diretamente se for texto ou número
-                : "Hipótese não disponível"}
-            </Typography>*/}
                   </Item>
                 </Grid>
               }

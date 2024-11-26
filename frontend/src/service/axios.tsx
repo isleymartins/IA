@@ -1,5 +1,5 @@
 import { apiUrl } from '../../config'
-import { Form, ModelPrediction, FileInformation, QualityMetrics, Hipotese } from "../model/model";
+import { ModelPrediction, FileInformation, QualityMetrics, Hipotese } from "../model/model";
 import axios from 'axios'
 
 export const fetchImage = async (path: string): Promise<Blob | undefined> => {
@@ -79,9 +79,12 @@ export const fetchUpload = async (fileData: FormData): Promise<FileInformation |
   return undefined
 }
 
-export const fetchHypothesisTest = async (model1: string, model2: string): Promise<Hipotese | undefined> => {
+export const fetchHypothesisTest = async (model1: string, model2: string, alpha: number): Promise<Hipotese | undefined> => {
   try {
-    const response = await axios.get(`${apiUrl}/api/metrics/${model1}/${model2}`);
+    const response = await axios.post(`${apiUrl}/api/metrics/${model1}/${model2}`, {
+      method: 'POST',
+      alpha: alpha,
+    });
     const { Metrics, Hipotese } = response.data;
 
     return {

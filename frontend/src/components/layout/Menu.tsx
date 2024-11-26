@@ -15,7 +15,6 @@ import {
   styled,
   useTheme,
   AppBarProps as MuiAppBarProps,
-  Paper,
   Button
 } from '@mui/material'
 import MuiAppBar from '@mui/material/AppBar';
@@ -98,7 +97,7 @@ const Menu: React.FC = () => {
   const [showCard, setShowCard] = React.useState(false);
   const [fileUploadForm, setTempFormData] = React.useState<Form>({ testCase: 0, feature: '', file: null })
 
-  const { fileData, setFileData, formData, setFormData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext
+  const {  setFileData,  setFormData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext
   const [loading, setLoading] = React.useState<boolean>(false);
 
   useEffect(() => {
