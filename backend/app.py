@@ -18,13 +18,24 @@ CORS(app)
 capture = Capture()
 colors = RandomColors()
 minimumDistanceClassifier = MinimumDistanceClassifier()
+perceptronsimples = None
+perceptrondelta = None
 bayesClassifier = BayesClassifier()
+neuralnetworks = None
+partitionalcluster = None
+boltzmanmachine = None
+
 directory = 'image/'
 
 # Mapeamento de strings para objetos
 model_map = { 
     'minimumdistanceclassifier': minimumDistanceClassifier, 
-    'bayesclassifier': bayesClassifier
+    "perceptronsimples":perceptronsimples,
+    "perceptrondelta":perceptrondelta,
+    'bayesclassifier': bayesClassifier,
+    "neuralnetworks":neuralnetworks,
+    "partitionalcluster":partitionalcluster,
+    "boltzmanmachine": boltzmanmachine
     }
 #Cria/remove a pasta do diretorio e seus elementos
 def prepare_directory(directory):
@@ -115,7 +126,7 @@ def upload_file():
         capture.shareData(feature, testCase)
         colors.setData(len(capture.y_train.unique()))
 
-        models = ["minimumdistanceclassifier", "bayesclassifier"]
+        models = ["minimumdistanceclassifier", "perceptronsimples", "perceptrondelta", "bayesclassifier", "neuralnetworks", "partitionalcluster","boltzmanmachine"]
         return jsonify({"message": "O arquivo foi passado corretamente", "data": len(capture.getData().to_dict(orient='records')),"test": len(capture.y_test), "models": models}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400
@@ -169,7 +180,8 @@ def get_linear_discriminant():
             "Model": model,
             "Train": train,
             "Precision": precision,
-            "Plots": plots
+            "Plots": plots,
+            "Id" : "minimumdistanceclassifier"
         }
         
         return jsonify(response_data)
@@ -219,13 +231,195 @@ def get_bayesClassifier():
             "Model": model,
             "Train": train,
             "Precision": precision,
-            "Plots": plots
+            "Plots": plots,
+            "Id" : "bayesClassifier"
         }
 
         return jsonify(response_data)
     else:
         return jsonify({"message": "Invalid data"}), 400
-    
+
+#Rota do algoritmo do classificador de Perceptron Simples
+@app.route('/api/perceptronsimples', methods=['GET'])
+
+def get_perceptronSimples():
+    global capture, colors
+    #Verifica se tem dados
+    if capture.data is not None:
+
+        folder = f'{directory}perceptronsimples'
+        prepare_directory(folder)
+
+        precision= None#.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+
+        #Possibilidade de itens para combinação
+        columns = list(capture.x_test.columns)
+        plots = []
+
+        #combinação dos atributos
+        #for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            #plot_path = .plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
+            #plots.append(plot_path)
+
+        response_data = {
+            "message": "Modelo perceptron Simples criado",
+            "Name": "Classificador Perceptron Simples",
+            "Model": model,
+            "Train": train,
+            "Precision": precision,
+            "Plots": plots,
+            "Id" : "perceptronsimples"
+        }
+
+        return jsonify(response_data)
+    else:
+        return jsonify({"message": "Invalid data"}), 400
+
+#Rota do algoritmo do classificador de Perceptron com Delta
+@app.route('/api/perceptrondelta', methods=['GET'])
+
+def get_perceptronDelta():
+    global capture, colors
+    #Verifica se tem dados
+    if capture.data is not None:
+
+        folder = f'{directory}perceptrondelta'
+        prepare_directory(folder)
+
+        precision = None#.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+
+        #Possibilidade de itens para combinação
+        columns = list(capture.x_test.columns)
+        plots = []
+
+        #combinação dos atributos
+        #for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            #plot_path = .plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
+            #plots.append(plot_path)
+
+        response_data = {
+            "message": "Modelo perceptron Delta criado",
+            "Name": "Classificador Perceptron Delta",
+            "Model": model,
+            "Train": train,
+            "Precision": precision,
+            "Plots": plots,
+            "Id" : "perceptrondelta"
+        }
+
+        return jsonify(response_data)
+    else:
+        return jsonify({"message": "Invalid data"}), 400
+
+#Rota do algoritmo do classificador de Redes Neurais
+@app.route('/api/neuralnetworks', methods=['GET'])
+
+def get_neuralNetworks():
+    global capture, colors
+    #Verifica se tem dados
+    if capture.data is not None:
+
+        folder = f'{directory}neuralnetworks'
+        prepare_directory(folder)
+
+        precision = None#.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+
+        #Possibilidade de itens para combinação
+        columns = list(capture.x_test.columns)
+        plots = []
+
+        #combinação dos atributos
+        #for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            #plot_path = .plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
+            #plots.append(plot_path)
+
+        response_data = {
+            "message": "Modelo Redes Neurais criado",
+            "Name": "Classificador Redes Neurais",
+            "Model": model,
+            "Train": train,
+            "Precision": precision,
+            "Plots": plots,
+            "Id" : "neuralnetworks"
+        }
+
+        return jsonify(response_data)
+    else:
+        return jsonify({"message": "Invalid data"}), 400
+
+#Rota do algoritmo do classificador de Cluster Particional
+@app.route('/api/partitionalcluster', methods=['GET'])
+
+def get_partitionalCluster():
+    global capture, colors
+    #Verifica se tem dados
+    if capture.data is not None:
+
+        folder = f'{directory}partitionalcluster'
+        prepare_directory(folder)
+
+        precision= None#.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+
+        #Possibilidade de itens para combinação
+        columns = list(capture.x_test.columns)
+        plots = []
+
+        #combinação dos atributos
+        #for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            #plot_path = .plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
+            #plots.append(plot_path)
+
+        response_data = {
+            "message": "Modelo Cluster Particional criado",
+            "Name": "Classificador Cluster Particional",
+            "Model": model,
+            "Train": train,
+            "Precision": precision,
+            "Plots": plots,
+            "Id" : "partitionalcluster"
+        }
+
+        return jsonify(response_data)
+    else:
+        return jsonify({"message": "Invalid data"}), 400
+
+#Rota do algoritmo do classificador de Maquina de Boltzman
+@app.route('/api/boltzmanmachine', methods=['GET'])
+
+def get_boltzmanMachine():
+    global capture, colors
+    #Verifica se tem dados
+    if capture.data is not None:
+
+        folder = f'{directory}boltzmanmachine'
+        prepare_directory(folder)
+
+        precision = None#.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+
+        #Possibilidade de itens para combinação
+        columns = list(capture.x_test.columns)
+        plots = []
+
+        #combinação dos atributos
+        #for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            #plot_path = .plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
+            #plots.append(plot_path)
+
+        response_data = {
+            "message": "Modelo Maquina de Boltzman criado",
+            "Name": "Classificador Maquina de Boltzman",
+            "Model": model,
+            "Train": train,
+            "Precision": precision,
+            "Plots": plots,
+            "Id" : "boltzmanmachine"
+        }
+
+        return jsonify(response_data)
+    else:
+        return jsonify({"message": "Invalid data"}), 400
+
+
 #Rotas utils
 
 #Rotas de vizualizacao de plots

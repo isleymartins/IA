@@ -71,7 +71,7 @@ const HipoteseComponent: React.FC<FormComponentProp> = ({model}:FormComponentPro
                     >
                         {
                             options.map((option) => (
-                                <MenuItem key={option.value} value={option.value}>
+                                option.value!==model&&<MenuItem key={option.value} value={option.value}>
                                     {option.label}
                                 </MenuItem>))
                         }
