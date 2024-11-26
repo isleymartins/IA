@@ -36,11 +36,9 @@ import {
 import { CardComponent } from '../layout/Card';
 import { FormUploadFile } from '../pages/Form/FormUploud';
 import FormComponent from "../pages/Form/Conteiner";
-import QualityMetricsComponent from '../pages/QualityMetrics/Conteiner';
 import { FileInformation, Form, ModelPrediction } from "../../model/model";
 import { fetchUpload, fetchModel } from "../../service/axios";
 import { AuthContext } from "../../context/AuthContext";
-import HipoteseComponent from "../pages/Form/Hipotese";
 
 const drawerWidth = 240;
 
@@ -243,8 +241,8 @@ const Menu: React.FC = () => {
         <Divider />
         <List>
           {titulo.map((text, index) => (
-            <ListItem key={text.label} disablePadding>
-              <ListItemButton onClick={() => setPagesNumber(index)}>
+            <ListItem key={text.label} disablePadding >
+              <ListItemButton onClick={() => setPagesNumber(index)} >
                 <ListItemIcon>{text.icon}</ListItemIcon>
                 <ListItemText primary={text.label} />
               </ListItemButton>

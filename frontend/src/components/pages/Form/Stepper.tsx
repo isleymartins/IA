@@ -40,7 +40,8 @@ export default function Stepper({ item }: any) {
                     display: 'flex',
                     alignItems: 'center',
                     height: 50,
-                    pl: 2,
+                    padding: 1,
+                    bgcolor: 'background.default',
                 }}
             >
                 <Typography variant='h6'>Imagens para analise de dispesão</Typography>

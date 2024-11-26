@@ -25,7 +25,7 @@ const HipoteseComponent: React.FC<FormComponentProp> = ({model}:FormComponentPro
         { label: "Perceptron Simples", value: ""},
         { label: "Perceptron com Regra Delta", value: "" },
         { label: "Classificador de Bayes", value:"bayesclassifier" },
-        { label: "Rede Neurais com Backpropagation", icon: ""},
+        { label: "Rede Neurais com Backpropagation", value: ""},
         { label: "Cluster Particional", value: "" },
         { label: "Maquina de Boltzman", value: "" },
         { label: "Teste de Hipoteses", value: "" },

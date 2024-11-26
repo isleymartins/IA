@@ -10,6 +10,7 @@ import Grid from '@mui/material/Grid2';
 import { styled } from '@mui/material/styles';
 import Stepper from './Stepper';
 import HipoteseComponent from './Hipotese';
+import { Warning } from '@mui/icons-material';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -98,6 +99,12 @@ const FormComponent: React.FC<FormComponentProp> = ({ index, model }: FormCompon
             </Item>
           </Grid>
         }
+        {!modelPrediction[index]&& <Grid size={12}>
+            <Item key={index}>
+              <Warning/>
+              <Typography> Adicione os dados</Typography>
+            </Item>
+          </Grid>}
       </Grid>
 
     </Box>
