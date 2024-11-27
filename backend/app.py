@@ -131,7 +131,7 @@ def upload_file():
         capture.shareData(feature, testCase)
         colors.setData(len(capture.y_train.unique()))
 
-        models = ["minimumdistanceclassifier", "perceptronsimples",  "bayesclassifier"]
+        models = ["minimumdistanceclassifier", "perceptronsimples",  "bayesclassifier","partitionalcluster"]
         return jsonify({"message": "O arquivo foi passado corretamente", "data": len(capture.getData().to_dict(orient='records')),"test": len(capture.y_test), "models": models}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400

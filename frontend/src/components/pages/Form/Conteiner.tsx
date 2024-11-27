@@ -10,6 +10,7 @@ import { styled } from '@mui/material/styles';
 import Stepper from './Stepper';
 import HipoteseComponent from './Hipotese';
 import { Warning } from '@mui/icons-material';
+import PartiticionalCLusterComponent from './PartitionalCluster';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -31,14 +32,14 @@ const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComp
 
   const { formData } = authContext;
 
-// console.log(model)
+ console.log("@",modelId)
   return (
     <Box sx={{ borderImageSlice: 'red', width: '70vw' }}>
 
 
       <Grid container spacing={2} >
         {
-          !model ? <Grid size={12}>
+          !model?.id? <Grid size={12}>
             <Item key={`${modelId}_0`}>
               <Warning />
               <Typography> Adicione os dados</Typography>
@@ -68,14 +69,14 @@ const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComp
                 </Grid>
               }
               {
-                model && <Grid>
+                model?.plots && <Grid>
                   <Item key={`${modelId}_4`}>
                     <Stepper item={model?.plots} />
                   </Item>
                 </Grid>
               }
               {
-                model && <Grid>
+                model?.qualityMetrics && <Grid>
                   <Item key={`${modelId}_5`}>
                     <TableData row={model.qualityMetrics} feature={formData.feature} title="Metricas de Quallidade" />
                   </Item>
@@ -87,6 +88,13 @@ const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComp
                     <HipoteseComponent model={modelId} />
                   </Item>
                 </Grid>
+              }
+              {
+                model && <Grid>
+                <Item key={`${modelId}_6`}>
+                  <PartiticionalCLusterComponent/>
+                </Item>
+              </Grid>
               }
             </>
         }
