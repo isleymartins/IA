@@ -99,3 +99,32 @@ export const fetchHypothesisTest = async (model1: string, model2: string, alpha:
     console.error("Erro ao buscar métricas de qualidade:", error);
   }
 };
+
+export const fetchPartitionalCluster = async (k_max: number): Promise<any | undefined> => {
+  try {
+    const response = await axios.post(`${apiUrl}/api/partitionalcluster`, {
+      k_max: k_max  // Remova o 'method' do corpo da requisição
+    }, {
+      headers: { 'Content-Type': 'application/json' }  // O cabeçalho para indicar o tipo de conteúdo
+    });
+    const { Name, Model, Precision, Train, Plots, Id} = response.data;
+    console.log(response);
+
+    const blobs: Blob[] = [];
+    for (const imagePath of Plots) {
+      const blob = await fetchImage(imagePath);
+      if (blob) {
+        blobs.push(blob);
+      } else {
+        console.warn(`Imagem não encontrada: ${imagePath}`);
+      }
+    }
+    return {
+      plots: blobs,
+      train: Train,
+    }
+
+  } catch (error) {
+    console.error("Erro ao buscar métricas de qualidade:", error);
+  }
+};

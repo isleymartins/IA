@@ -1,11 +1,12 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 # Importando diretamente do pacote controllers
-from controllers import MinimumDistanceClassifier, BayesClassifier, Perceptron, RandomColors, Capture, QualityMetrics
+from controllers import MinimumDistanceClassifier, BayesClassifier, Perceptron, RandomColors, Capture, PartitionalCluster, QualityMetrics
 import os
 import shutil
 from itertools import combinations
 import pandas as pd
+import numpy as np
 
 # Porta do localhost
 port = os.getenv('PORT', 5000)
@@ -23,7 +24,7 @@ perceptronsimples =  Perceptron()
 perceptrondelta = None
 bayesClassifier = BayesClassifier()
 neuralnetworks = None
-partitionalcluster = None
+partitionalcluster = PartitionalCluster()
 boltzmanmachine = None
 
 directory = 'image/'
@@ -249,49 +250,51 @@ def get_perceptronSimples():
     global capture, perceptronsimples, colors
     if capture.data is not None:
         # Treina o modelo
-        perceptronsimples.setData(capture.x_train, capture.y_train, capture.feature)
+        perceptronsimples.setData(capture.x_train, capture.y_train)
         
-       
         # Predição
-        '''predictions = perceptronsimples.fit(capture.x_test) 
+        predictions = perceptronsimples.fit(capture.x_test)
         # Transcreve para os nomes das classes
         predictions["Prediction"] = capture.transcribe(predictions["Prediction"])
-        '''
+        
+        print("Prediction", predictions)
         # Modelo treinado
         model = perceptronsimples.getData()
-        #Adaptar para json
-        model["weights"] = model["weights"].tolist()
-        model["bias"] = model["bias"].tolist()
-
-        ''' # Organizar dados de treinamento para resposta
-        train = [
-            {**features}
-            for species, features in predictions.transpose().items()
-        ]'''
+        for m in model:
+            if 'weights' in m and isinstance(m['weights'], np.ndarray):
+                m["weights"] = m["weights"].tolist()
+            if 'bias' in m and isinstance(m['bias'], np.ndarray):
+                m["bias"] = m["bias"].tolist()
+                
+        print("Model", model)    
+        
+        # Organizar dados de treinamento para resposta
+        train = predictions.to_dict(orient='records')
+        print("Train", train)
         
         # Criar diretório para plots
         folder = f'{directory}/perceptronsimples'
         prepare_directory(folder)
 
         # Calcula precisão (confusão)
-        #precision = perceptronsimples.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
-
+        precision = perceptronsimples.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+        
         # Obter nomes das colunas
         columns = list(capture.x_test.columns)
         plots = []
 
         # Gerar combinações de atributos para os gráficos
         '''for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            plot_path = perceptronsimples.plot(colors.getData(), col1, col2, capture.x_test, capture.getClassifications(), f'{idx}', folder)
+            plot_path = perceptronsimples.plot(colors, col1, col2, predictions, capture.getClassifications(), idx, folder)
             plots.append(plot_path)'''
-        print("Model",model)
+        
         # Resposta
         response_data = {
             "message": "Modelo perceptron Simples criado",
             "Name": "Classificador Perceptron Simples",
             "Model": model,
-            "Train": '''train''',
-            "Precision": '''precision''',
+            "Train": train,
+            "Precision": precision,
             "Plots": plots,
             "Id": "perceptronsimples"
         }
@@ -299,6 +302,7 @@ def get_perceptronSimples():
         return jsonify(response_data)
     else:
         return jsonify({"message": "Invalid data"}), 400
+
 
 
 #Rota do algoritmo do classificador de Perceptron com Delta
@@ -374,40 +378,42 @@ def get_neuralNetworks():
         return jsonify({"message": "Invalid data"}), 400
 
 #Rota do algoritmo do classificador de Cluster Particional
-@app.route('/api/partitionalcluster', methods=['GET'])
+@app.route('/api/partitionalcluster', methods=['POST'])
 
 def get_partitionalCluster():
-    global capture, colors
-    #Verifica se tem dados
-    if capture.data is not None:
-
+    global capture, partitionalcluster
+    # Verifica se tem dados
+    if not capture.data.empty:
         folder = f'{directory}partitionalcluster'
         prepare_directory(folder)
+        
+        data = request.get_json()
+        k_max = data.get("k_max")
 
-        precision= None#.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
-
-        #Possibilidade de itens para combinação
-        columns = list(capture.x_test.columns)
+        '''partitionalcluster.setData(capture.data, k_max)
+        result = partitionalcluster.kmeans(k_max)'''
+        result = partitionalcluster.kmeans(8)
+        # Possibilidade de itens para combinação
+        columns = list(capture.data.columns)
         plots = []
 
-        #combinação dos atributos
-        #for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            #plot_path = .plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
-            #plots.append(plot_path)
+        # Combinação dos atributos
+        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = partitionalcluster.plot(idx, folder)
+            plots.append(plot_path)
 
         response_data = {
             "message": "Modelo Cluster Particional criado",
             "Name": "Classificador Cluster Particional",
-            "Model": model,
-            "Train": train,
-            "Precision": precision,
+            "Train": result,
             "Plots": plots,
-            "Id" : "partitionalcluster"
+            "Id": "partitionalcluster"
         }
 
         return jsonify(response_data)
     else:
-        return jsonify({"message": "Invalid data"}), 400
+        return jsonify({"message": "Dados inválidos"}), 400
+
 
 #Rota do algoritmo do classificador de Maquina de Boltzman
 @app.route('/api/boltzmanmachine', methods=['GET'])
