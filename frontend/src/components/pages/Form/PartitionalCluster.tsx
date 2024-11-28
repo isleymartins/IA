@@ -3,7 +3,7 @@ import TableData from "../../Table";
 import { fetchPartitionalCluster } from "../../../service/axios";
 import { AuthContext } from "../../../context/AuthContext";
 import { Hipotese, ModelPrediction } from "../../../model/model";
-import { Box, Button, MenuItem, Paper, styled, TextField, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, MenuItem, Paper, styled, TextField, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import Stepper from './Stepper';
 
@@ -83,48 +83,53 @@ const PartiticionalCLusterComponent: React.FC<FormComponentProp> = ({ }: FormCom
                 </Item>
             </Grid>
 
-            <Grid>
-                {
-                    metrics?.plots && <Item>
-                        <Paper
-                            square
-                            elevation={0}
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                height: 50,
-                                padding: 1,
-                                bgcolor: 'background.default',
-                            }}
-                        >
-                            <Typography variant='h6' color='textSecondary'>Calinski_harabasz: {metrics?.model[0]}</Typography>
-                        </Paper>
-                        {metrics?.plots.length ? <img
-                            key={metrics?.plots.length}
-                            src={URL.createObjectURL(metrics?.plots[metrics?.plots.length - 1])}
-                            alt="Plot Image"
-                            style={{ width: '23vw' }}
-                        />
-                            : "Erro ao carregar"
-                        }
+            {
+                loading ?<Grid size={12}> <CircularProgress color='secondary'/></Grid>
+                :<>
+                    <Grid>
+                        {
+                            metrics?.plots && <Item>
+                                <Paper
+                                    square
+                                    elevation={0}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        height: 50,
+                                        padding: 1,
+                                        bgcolor: 'background.default',
+                                    }}
+                                >
+                                    <Typography variant='h6' color='textSecondary'>Calinski_harabasz: {metrics?.model[0]}</Typography>
+                                </Paper>
+                                {metrics?.plots.length ? <img
+                                    key={metrics?.plots.length}
+                                    src={URL.createObjectURL(metrics?.plots[metrics?.plots.length - 1])}
+                                    alt="Plot Image"
+                                    style={{ width: '23vw' }}
+                                />
+                                    : "Erro ao carregar"
+                                }
 
-                    </Item>}
-            </Grid>
-            {metrics?.plots ?
-                <Grid>
-                    <Item>
-                        <Stepper item={metrics?.plots} />
-                    </Item>
-                </Grid> :
-                <Grid>
-                    <Item>
-                        <Typography>"Não contem imagens"</Typography>
-                    </Item>
-                </Grid>
+                            </Item>}
+                    </Grid>
+                    {metrics?.plots ?
+                        <Grid>
+                            <Item>
+                                <Stepper item={metrics?.plots} />
+                            </Item>
+                        </Grid> :
+                        <Grid>
+                            <Item>
+                                <Typography>"Não contem imagens"</Typography>
+                            </Item>
+                        </Grid>
+                    }
+
+                </>
             }
-
-
         </Grid>
+
 
     );
 };
