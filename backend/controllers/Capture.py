@@ -47,7 +47,7 @@ class Capture:
         
         # Obtendo valores únicos
         classifications = data.unique()
-        
+           
         # Criação do dicionário de substituições
         substitution = {value: int(idx + 1) for idx, value in enumerate(classifications)}
 

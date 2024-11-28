@@ -4,7 +4,7 @@ import axios from 'axios'
 
 export const fetchImage = async (path: string): Promise<Blob | undefined> => {
   try {
-    console.log("fetchImage", path);
+    // console.log("fetchImage", path);
     const response = await axios.get(`${apiUrl}/api/plots/${path}`, { responseType: 'blob' });
 
     if (response.status === 200) {
@@ -88,7 +88,7 @@ export const fetchHypothesisTest = async (model1: string, model2: string, alpha:
     });
 
     const { Metrics, Hipotese } = response.data;
-    console.log(response);
+    // console.log(response);
 
     return {
       metrics: Metrics,
@@ -108,7 +108,7 @@ export const fetchPartitionalCluster = async (k_max: number): Promise<ModelPredi
       headers: { 'Content-Type': 'application/json' }  // O cabeçalho para indicar o tipo de conteúdo
     });
     const { Name, Model, Precision, Train, Plots, Id} = response.data;
-    console.log(response);
+     console.log("axios",response);
 
     const blobs: Blob[] = [];
     for (const imagePath of Plots) {
@@ -121,11 +121,15 @@ export const fetchPartitionalCluster = async (k_max: number): Promise<ModelPredi
     }
     return {
       plots: blobs,
-      train: Train,
-      id:Id
+      model:Model,
+      id:Id,
+      name: Name,
+      test:[],
+      confusionMatrix: Array.isArray(Precision) ? [...Precision] : [],
+      qualityMetrics: undefined
     }
 
   } catch (error) {
-    console.error("Erro ao buscar métricas de qualidade:", error);
+    console.error("Erro ao buscar o Cluster Paticional:", error);
   }
 };

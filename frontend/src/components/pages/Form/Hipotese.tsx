@@ -24,7 +24,6 @@ const HipoteseComponent: React.FC<FormComponentProp> = ({ model }: FormComponent
         await fetchHypothesisTest(model1, model2, alpha)
             .then((response: Hipotese | undefined) => {
                 if (response) {
-                    console.log("@", response.metrics)
                     setMetrics(response)
                 }
             })

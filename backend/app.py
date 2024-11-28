@@ -88,7 +88,7 @@ def calcular_metricas(matrix_confusion):
     else:
         
         
-        print("entrou")
+        # print("entrou")
         return None
 
 # Rotas
@@ -257,7 +257,7 @@ def get_perceptronSimples():
         # Transcreve para os nomes das classes
         predictions["Prediction"] = capture.transcribe(predictions["Prediction"])
         
-        print("Prediction", predictions)
+        # print("Prediction", predictions)
         # Modelo treinado
         model = perceptronsimples.getData()
         for m in model:
@@ -266,11 +266,11 @@ def get_perceptronSimples():
             if 'bias' in m and isinstance(m['bias'], np.ndarray):
                 m["bias"] = m["bias"].tolist()
                 
-        print("Model", model)    
+        # print("Model", model)    
         
         # Organizar dados de treinamento para resposta
         train = predictions.to_dict(orient='records')
-        print("Train", train)
+        # print("Train", train)
         
         # Criar diretório para plots
         folder = f'{directory}/perceptronsimples'
@@ -383,29 +383,37 @@ def get_neuralNetworks():
 def get_partitionalCluster():
     global capture, partitionalcluster
     # Verifica se tem dados
-    if not capture.data.empty:
+   
+    if capture.data is not None:
         folder = f'{directory}partitionalcluster'
         prepare_directory(folder)
         
         data = request.get_json()
         k_max = data.get("k_max")
-
-        '''partitionalcluster.setData(capture.data, k_max)
-        result = partitionalcluster.kmeans(k_max)'''
-        result = partitionalcluster.kmeans(8)
+        data_copy = capture.data.copy()
+        replacement_data, transcribe = capture.replacement(data_copy[capture.feature])
+        
+        data_copy[capture.feature]=replacement_data
+        
+        partitionalcluster.setData(data_copy, k_max)
+        model = partitionalcluster.train(data_copy,k_max)
+        
+        
         # Possibilidade de itens para combinação
-        columns = list(capture.data.columns)
+        columns = list(data_copy.columns)
         plots = []
-
+        colors = RandomColors()
+        colors.setData(k_max)
         # Combinação dos atributos
-        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            plot_path = partitionalcluster.plot(idx, folder)
+        for idx in range(k_max):
+            plot_path = partitionalcluster.plot(colors.getData(),idx, folder)
             plots.append(plot_path)
 
         response_data = {
             "message": "Modelo Cluster Particional criado",
             "Name": "Classificador Cluster Particional",
-            "Train": result,
+            "Model": [int(model)],
+            # "Train": result,
             "Plots": plots,
             "Id": "partitionalcluster"
         }

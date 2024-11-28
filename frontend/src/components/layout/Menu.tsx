@@ -15,7 +15,8 @@ import {
   styled,
   useTheme,
   AppBarProps as MuiAppBarProps,
-  Button
+  Button,
+  CircularProgress
 } from '@mui/material'
 import MuiAppBar from '@mui/material/AppBar';
 import {
@@ -99,6 +100,7 @@ const Menu: React.FC = () => {
 
   const {  setFileData,  setFormData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext
   const [loading, setLoading] = React.useState<boolean>(false);
+  const [loadingModel, setLoadingModel] = React.useState<boolean>(false);
 
   useEffect(() => {
     if (loading) {
@@ -121,7 +123,7 @@ const Menu: React.FC = () => {
 
   const allModels = async () => {
     const models: ModelPrediction[] = []
-
+    setLoadingModel(true)
     for (const model of directory) {
       await fetchModel(model)
         .then((modelData: ModelPrediction | undefined) => {
@@ -131,7 +133,7 @@ const Menu: React.FC = () => {
         })
     }
     setModelPrediction([...models])
-    console.log("allModels", modelPrediction)
+    // console.log("allModels", modelPrediction)
   }
 
 
@@ -153,10 +155,7 @@ const Menu: React.FC = () => {
         // modelos disponiveis
         setDirectory(response.models)
         //Chamada de modelos
-        allModels()
-        console.log("Menu", response)
-
-
+        allModels().finally(()=>setLoadingModel(false))
       }
 
 
@@ -180,7 +179,7 @@ const Menu: React.FC = () => {
     { label: "Maquina de Boltzman", icon: <Hub />, modelId: "boltzmanmachine" }
   ];
 
-  console.log(pageModel,"!",modelPrediction.find((respose:ModelPrediction) => respose.id === pageModel))
+  // console.log(pageModel,"!",modelPrediction.find((respose:ModelPrediction) => respose.id === pageModel))
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -268,10 +267,12 @@ const Menu: React.FC = () => {
             </CardComponent>
           </Box>
         )}
-        <FormComponent
+        {
+        loadingModel?<CircularProgress  color="success" />:<FormComponent
           modelId={pageModel}
           model={modelPrediction.find((respose:ModelPrediction) => respose.id === pageModel)} 
-        />;
+        />
+        }
       </Main>
     </Box>
   );
