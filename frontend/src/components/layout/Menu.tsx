@@ -125,12 +125,15 @@ const Menu: React.FC = () => {
     const models: ModelPrediction[] = []
     setLoadingModel(true)
     for (const model of directory) {
-      await fetchModel(model)
+      if(model !== "partitionalcluster"){
+        await fetchModel(model)
         .then((modelData: ModelPrediction | undefined) => {
           if (modelData) {
             models.push(modelData)
           }
         })
+      }
+      
     }
     setModelPrediction([...models])
     // console.log("allModels", modelPrediction)
