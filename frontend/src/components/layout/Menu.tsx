@@ -179,7 +179,6 @@ const Menu: React.FC = () => {
     { label: "Maquina de Boltzman", icon: <Hub />, modelId: "boltzmanmachine" }
   ];
 
-  // console.log(pageModel,"!",modelPrediction.find((respose:ModelPrediction) => respose.id === pageModel))
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />

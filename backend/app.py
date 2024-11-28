@@ -407,7 +407,7 @@ def get_neuralNetworks():
 def get_partitionalCluster():
     global capture, partitionalcluster
     # Verifica se tem dados
-   
+    
     if capture.data is not None:
         folder = f'{directory}partitionalcluster'
         prepare_directory(folder)
@@ -422,9 +422,11 @@ def get_partitionalCluster():
        
         if len(data_copy.columns)>2: 
             data_copy  = data_copy.drop(columns=[capture.feature])
-        if  k_max>=2:     
-           partitionalcluster.setData(data_copy , k_max)
-           qtd,image = partitionalcluster.train(data_copy ,k_max, folder)
+        if  k_max>=2:   
+           print("pa",k_max)  
+           partitionalcluster.setData(data_copy , k_max, folder)
+           qtd = partitionalcluster.train(data_copy ,k_max, folder)
+           image = partitionalcluster.calinski_score(folder)
         
         train = [
             {**features}
@@ -438,7 +440,7 @@ def get_partitionalCluster():
         colors.setData(k_max)
         # Combinação dos atributos
         for idx in range(k_max):
-            plot_path = partitionalcluster.plot(colors.getData(),idx, folder)
+            plot_path = partitionalcluster.plot(colors.getData(),idx, folder,data_copy)
             plots.append(plot_path)
         plots.append(image)
          

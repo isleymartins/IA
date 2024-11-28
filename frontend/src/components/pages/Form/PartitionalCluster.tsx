@@ -3,15 +3,25 @@ import TableData from "../../Table";
 import { fetchPartitionalCluster } from "../../../service/axios";
 import { AuthContext } from "../../../context/AuthContext";
 import { Hipotese, ModelPrediction } from "../../../model/model";
-import { Box, Button, MenuItem, Paper, TextField, Typography } from '@mui/material';
+import { Box, Button, MenuItem, Paper, styled, TextField, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import Stepper from './Stepper';
 
 
+const Item = styled(Paper)(({ theme }) => ({
+    backgroundColor: theme.palette.background.paper,
+    ...theme.typography.body2,
+    padding: theme.spacing(1),
+    textAlign: 'center',
+    color: theme.palette.text.secondary,
+    ...theme.applyStyles('dark', {
+        backgroundColor: '#1A2027',
+    }),
+}));
+
 interface FormComponentProp {
 
 }
-
 
 const PartiticionalCLusterComponent: React.FC<FormComponentProp> = ({ }: FormComponentProp) => {
 
@@ -33,43 +43,49 @@ const PartiticionalCLusterComponent: React.FC<FormComponentProp> = ({ }: FormCom
     }
 
     return (
-        <Box padding="5px">
-            <Grid container={true} spacing={2} display="flex" justifyContent="stretch" >
-                <Grid size={4}>
+        <Grid container={true} spacing={2} display="flex" justifyContent="stretch" >
 
-                    <TextField
-                        type='number'
-                        value={kOption}
-                        onChange={(event: any) => { setKOption(+event.target.value) }}
-                        variant="outlined"
-                        label="K Maximo"
-                        slotProps={{
-                            input: {
-                                inputProps: { min: 0 }
-                            },
-                        }}
+            <Grid size={12}>
+                <Item >
+                    <Box display="flex" >
+                        <TextField
+                            margin='dense'
+                            size='small'
+                            type='number'
+                            value={kOption}
+                            onChange={(event: any) => { setKOption(+event.target.value) }}
+                            variant="outlined"
+                            label="K Maximo"
+                            slotProps={{
+                                input: {
+                                    inputProps: { min: 0 }
+                                },
+                            }}
 
-                        fullWidth={true}
-                    >
-                    </TextField>
-                </Grid>
-                <Grid size={4}>
-                    <Button
-                        variant='contained'
-                        disabled={loading}
-                        onClick={() => {
-                            partitionalCluster(kOption)
-                            setLoading(true)
-                        }}
-                    >
-                        Definir Maximo
-                    </Button>
-                </Grid>
+                            fullWidth={true}
+                        >
+                        </TextField>
+
+                        <Button
+                            sx={{ marginLeft: "1%", paddingBlock: "1%" }}
+                            size='small'
+                            variant='contained'
+                            disabled={loading}
+                            fullWidth={true}
+                            onClick={() => {
+                                setLoading(true)
+                                partitionalCluster(kOption)
+                            }}
+                        >
+                            Definir Maximo
+                        </Button>
+                    </Box>
+                </Item>
             </Grid>
 
-            <Box display="flex" paddingBlock="2%">
+            <Grid>
                 {
-                    metrics?.plots && <Paper>
+                    metrics?.plots && <Item>
                         <Paper
                             square
                             elevation={0}
@@ -81,7 +97,7 @@ const PartiticionalCLusterComponent: React.FC<FormComponentProp> = ({ }: FormCom
                                 bgcolor: 'background.default',
                             }}
                         >
-                            <Typography variant='h6'>Calinski_harabasz: {metrics?.model[0]}</Typography>
+                            <Typography variant='h6' color='textSecondary'>Calinski_harabasz: {metrics?.model[0]}</Typography>
                         </Paper>
                         {metrics?.plots.length ? <img
                             key={metrics?.plots.length}
@@ -92,10 +108,23 @@ const PartiticionalCLusterComponent: React.FC<FormComponentProp> = ({ }: FormCom
                             : "Erro ao carregar"
                         }
 
-                    </Paper>}
-                {metrics?.plots ? <Stepper item={metrics?.plots} /> : "Não contem imagens"}
-            </Box>
-        </Box>
+                    </Item>}
+            </Grid>
+            {metrics?.plots ?
+                <Grid>
+                    <Item>
+                        <Stepper item={metrics?.plots} />
+                    </Item>
+                </Grid> :
+                <Grid>
+                    <Item>
+                        <Typography>"Não contem imagens"</Typography>
+                    </Item>
+                </Grid>
+            }
+
+
+        </Grid>
 
     );
 };

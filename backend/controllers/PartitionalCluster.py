@@ -7,53 +7,65 @@ import numpy as np
 
 class PartitionalCluster:
     def __init__(self):
-        self.data = None
-        self.values_k = []
-        self.kmeans_k = []
-    
+        self.model= None
+
     def train(self, data, test_k, folder):
-        calinski_scores = []
-        
+        self.model = {
+            "values_k": [],
+            "kmeans_k": [],
+            "calinski_scores": []
+        }
         # Treinamento dos modelos KMeans para cada número de clusters
         for i in range(1, test_k + 1):
             kmeans = KMeans(n_clusters=i, init='k-means++', random_state=0).fit(data)
-            self.values_k.append(i)
-            self.kmeans_k.append(kmeans)
+            self.model["values_k"].append(i)
+            self.model["kmeans_k"].append(kmeans)
         
         # Calcular o Calinski-Harabasz Score para cada número de clusters >= 2
-        for kmeans in self.kmeans_k[1:]:  # Comece do modelo com k=2
-            score = calinski_harabasz_score(data, kmeans.labels_)
-            calinski_scores.append(score)
-        
+        '''A métrica avalia a qualidade da separação dos clusters, 
+        comparando a dispersão interna dos clusters com a dispersão entre clusters.
+        Valores maiores indicam clusters mais definidos.'''
+
+        for kmeans in self.model["kmeans_k"][1:]:  # Comece do modelo com k=2
+           
+            # Verificação do número de clusters distintos >1
+            if len(np.unique(kmeans.labels_)) > 1: 
+                score = calinski_harabasz_score(data, kmeans.labels_)
+                self.model["calinski_scores"].append(score)
+                
+        return np.argmax(self.model["calinski_scores"]) + 2
+
+    def calinski_score(self,folder):
+
         # Plotar os scores
         fig, ax = plt.subplots()
-        ax.plot(range(2, test_k + 1), calinski_scores)
+        ax.plot(range(2, 2 + len(self.model["calinski_scores"])), self.model["calinski_scores"])
         ax.set_title("Calinski-Harabasz Score vs Número de Clusters")
         ax.set_xlabel("Número de Clusters (k)")
         ax.set_ylabel("Calinski-Harabasz Score")
         
         # Salvar a figura e fechar para liberar memória
-        image_path = f'{folder}/plot_{test_k + 1}.png'
+        image_path = f'{folder}/plot_{len(self.model["calinski_scores"]) + 2}.png'
         plt.savefig(image_path)
         plt.close(fig)
         
         # Retorna o número de clusters com o maior score e o caminho da imagem
-        return np.argmax(calinski_scores) + 2, image_path
+        return  image_path
 
     
-    def plot(self,colors, index, folder):
+    def plot(self,colors, index, folder,data):
     
         # Criar uma nova figura para cada valor de k
         fig, ax = plt.subplots(figsize=(10, 6))
             
          # Obter labels e centroides do modelo atual
-        labels = self.kmeans_k[index].labels_
-        centroids = self.kmeans_k[index].cluster_centers_
+        labels = self.model["kmeans_k"][index].labels_
+        centroids = self.model["kmeans_k"][index].cluster_centers_
             
         # Plotar os pontos com cores de acordo com os labels
         ax.scatter(
-            self.data.iloc[:, 0],
-            self.data.iloc[:, 1],
+            data.iloc[:, 0],
+            data.iloc[:, 1],
             c=[colors[label % len(colors)] for label in labels]
         )
         # Plotar os centroides
@@ -66,16 +78,14 @@ class PartitionalCluster:
         image_path = f'{folder}/plot_{index}.png'
         plt.savefig(image_path)
         plt.close(fig)
-            
-        
+
         return image_path  # Retorna o caminho da imagem geradas
 
     
     def getData(self):
-        return self.data
+        return self.model
     
-    def setData(self, data, k):
-        self.test_k = k
-        self.data = data
+    def setData(self, data, k, folder):
+        self.model = self.train(data, k, folder)
 
 
