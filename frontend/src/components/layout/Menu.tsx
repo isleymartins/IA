@@ -98,7 +98,7 @@ const Menu: React.FC = () => {
   const [showCard, setShowCard] = React.useState(false);
   const [fileUploadForm, setTempFormData] = React.useState<Form>({ testCase: 0, feature: '', file: null })
 
-  const {  setFileData,  setFormData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext
+  const { setFileData, setFormData, directory, setDirectory, modelPrediction, setModelPrediction } = authContext
   const [loading, setLoading] = React.useState<boolean>(false);
   const [loadingModel, setLoadingModel] = React.useState<boolean>(false);
 
@@ -121,22 +121,22 @@ const Menu: React.FC = () => {
     setTempFormData(updatedData);
   };
 
-  const allModels = async () => {
+  const allModels = async (directoryModel:string[]) => {
     const models: ModelPrediction[] = []
     setLoadingModel(true)
-    for (const model of directory) {
-      if(model !== "partitionalcluster"){
+    for (const model of directoryModel) {
+      if (model !== "partitionalcluster") {
         await fetchModel(model)
-        .then((modelData: ModelPrediction | undefined) => {
-          if (modelData) {
-            models.push(modelData)
-          }
-        })
+          .then((modelData: ModelPrediction | undefined) => {
+            if (modelData) {
+              models.push(modelData)
+            }
+          })
       }
-      
+
     }
     setModelPrediction([...models])
-    // console.log("allModels", modelPrediction)
+    setLoadingModel(false)
   }
 
 
@@ -158,21 +158,18 @@ const Menu: React.FC = () => {
         // modelos disponiveis
         setDirectory(response.models)
         //Chamada de modelos
-        allModels().finally(()=>setLoadingModel(false))
+        allModels(response.models)
       }
-
-
     }).finally(() => { setLoading(false) })
 
-    // handleToggleCard(); // Fechar o card após submissão
   };
 
- interface Title{
-    label:string 
-    icon:any 
-    modelId:string
+  interface Title {
+    label: string
+    icon: any
+    modelId: string
   }
-  const titulo: Title []= [
+  const titulo: Title[] = [
     { label: "Distancia Minima", icon: <Explore />, modelId: "minimumdistanceclassifier" },
     { label: "Perceptron Simples", icon: <DisplaySettings />, modelId: "perceptronsimples" },
     { label: "Perceptron com Regra Delta", icon: <FindReplace />, modelId: "perceptrondelta" },
@@ -271,10 +268,10 @@ const Menu: React.FC = () => {
           </Box>
         )}
         {
-        loadingModel?<CircularProgress  color="success" />:<FormComponent
-          modelId={pageModel}
-          model={modelPrediction.find((respose:ModelPrediction) => respose.id === pageModel)} 
-        />
+          loadingModel ? <CircularProgress color="success" /> : <FormComponent
+            modelId={pageModel}
+            model={modelPrediction.find((respose: ModelPrediction) => respose.id === pageModel)}
+          />
         }
       </Main>
     </Box>

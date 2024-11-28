@@ -10,7 +10,6 @@ interface CardComponentProps {
 
     handleClose: () => void;
     handleFormChange: (formData: Form) => void;
-    // handleFormSubmit: () => void;
     setLoading: (loading: boolean) => void
 }
 
@@ -19,8 +18,6 @@ const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormCh
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true)
-        // handleFormSubmit();
-        // handleClose();
     };
 
     return (
