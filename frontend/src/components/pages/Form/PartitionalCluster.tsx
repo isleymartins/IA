@@ -18,10 +18,12 @@ const PartiticionalCLusterComponent: React.FC<FormComponentProp> = ({ }: FormCom
     const [metrics, setMetrics] = useState<ModelPrediction>();
     const [loading, setLoading] = React.useState<boolean>(false);
     const [kOption, setKOption] = React.useState<number>(0);
-    const [column, setColumn] = React.useState<string>("");
 
-    const partitionalCluster = async (k: number, column: string) => {
-        await fetchPartitionalCluster(k, column)
+    const authContext = useContext(AuthContext);
+    const { formData } = authContext;
+
+    const partitionalCluster = async (k: number) => {
+        await fetchPartitionalCluster(k)
             .then((response: ModelPrediction | undefined) => {
                 if (response) {
                     setMetrics(response)
@@ -30,7 +32,6 @@ const PartiticionalCLusterComponent: React.FC<FormComponentProp> = ({ }: FormCom
             .finally(() => { setLoading(false) })
     }
 
-    console.log("$$", metrics)
     return (
         <Box padding="5px">
             <Grid container={true} spacing={2} display="flex" justifyContent="stretch" >
@@ -53,28 +54,11 @@ const PartiticionalCLusterComponent: React.FC<FormComponentProp> = ({ }: FormCom
                     </TextField>
                 </Grid>
                 <Grid size={4}>
-
-                    <TextField
-                        value={column}
-                        onChange={(event: any) => { setColumn(event.target.value) }}
-                        variant="outlined"
-                        label="Coluna a ser removida"
-                        slotProps={{
-                            input: {
-                                inputProps: { min: 0 }
-                            },
-                        }}
-
-                        fullWidth={true}
-                    >
-                    </TextField>
-                </Grid>
-                <Grid size={4}>
                     <Button
                         variant='contained'
                         disabled={loading}
                         onClick={() => {
-                            partitionalCluster(kOption, column)
+                            partitionalCluster(kOption)
                             setLoading(true)
                         }}
                     >
@@ -82,17 +66,28 @@ const PartiticionalCLusterComponent: React.FC<FormComponentProp> = ({ }: FormCom
                     </Button>
                 </Grid>
             </Grid>
-            <Box display="flex">
+
+            <Box display="flex" paddingBlock="2%">
                 {
-                    metrics?.plots && <Paper> 
-
-                        <Typography variant='h6'>Calinski_harabasz: {metrics?.model[0]}</Typography>
-
+                    metrics?.plots && <Paper>
+                        <Paper
+                            square
+                            elevation={0}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                height: 50,
+                                padding: 1,
+                                bgcolor: 'background.default',
+                            }}
+                        >
+                            <Typography variant='h6'>Calinski_harabasz: {metrics?.model[0]}</Typography>
+                        </Paper>
                         {metrics?.plots.length ? <img
                             key={metrics?.plots.length}
                             src={URL.createObjectURL(metrics?.plots[metrics?.plots.length - 1])}
                             alt="Plot Image"
-                            style={{ width: '28vw' }}
+                            style={{ width: '23vw' }}
                         />
                             : "Erro ao carregar"
                         }

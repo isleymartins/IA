@@ -25,8 +25,6 @@ class PartitionalCluster:
             score = calinski_harabasz_score(data, kmeans.labels_)
             calinski_scores.append(score)
         
-        print("¨¨", calinski_scores)
-
         # Plotar os scores
         fig, ax = plt.subplots()
         ax.plot(range(2, test_k + 1), calinski_scores)

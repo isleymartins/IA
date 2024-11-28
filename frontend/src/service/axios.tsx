@@ -100,16 +100,14 @@ export const fetchHypothesisTest = async (model1: string, model2: string, alpha:
   }
 };
 
-export const fetchPartitionalCluster = async (k_max: number,column:string): Promise<ModelPrediction | undefined> => {
+export const fetchPartitionalCluster = async (k_max: number): Promise<ModelPrediction | undefined> => {
   try {
     const response = await axios.post(`${apiUrl}/api/partitionalcluster`, {
       k_max: k_max,  // Remova o 'method' do corpo da requisição
-      column: column
     }, {
       headers: { 'Content-Type': 'application/json' }  // O cabeçalho para indicar o tipo de conteúdo
     });
     const { Name, Model, Precision, Train, Plots, Id} = response.data;
-     console.log("axios",response);
 
     const blobs: Blob[] = [];
     for (const imagePath of Plots) {
@@ -120,14 +118,15 @@ export const fetchPartitionalCluster = async (k_max: number,column:string): Prom
         console.warn(`Imagem não encontrada: ${imagePath}`);
       }
     }
+   
     return {
       plots: blobs,
       model:Model,
       id:Id,
       name: Name,
       test:[],
-      confusionMatrix: Array.isArray(Precision) ? [...Precision] : [],
-      qualityMetrics: undefined
+      confusionMatrix:  [],
+      qualityMetrics: Train
     }
 
   } catch (error) {
