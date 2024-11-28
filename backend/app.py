@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 # Importando diretamente do pacote controllers
-from controllers import MinimumDistanceClassifier, BayesClassifier, Perceptron, RandomColors, Capture, PartitionalCluster, QualityMetrics
+from controllers import MinimumDistanceClassifier, BayesClassifier, Perceptron, PerceptronDelta, RandomColors, Capture, PartitionalCluster, QualityMetrics
 import os
 import shutil
 from itertools import combinations
@@ -21,7 +21,7 @@ capture = Capture()
 colors = RandomColors()
 minimumDistanceClassifier = MinimumDistanceClassifier()
 perceptronsimples =  Perceptron()
-perceptrondelta = None
+perceptrondelta = PerceptronDelta()
 bayesClassifier = BayesClassifier()
 neuralnetworks = None
 partitionalcluster = PartitionalCluster()
@@ -126,12 +126,12 @@ def upload_file():
         # Converte para um valor de 0 a 1
         testCase = float(request.form['testCase']) / 100  
 
-        # Inicializa a instância da classe `Capture` e usar setData e shareData "perceptrondelta", , "neuralnetworks", "partitionalcluster","boltzmanmachine"
+        # Inicializa a instância da classe `Capture` e usar setData e shareData  , "neuralnetworks", "partitionalcluster","boltzmanmachine"
         capture.setData(file, feature, file_extension)
         capture.shareData(feature, testCase)
         colors.setData(len(capture.y_train.unique()))
 
-        models = ["minimumdistanceclassifier", "perceptronsimples",  "bayesclassifier","partitionalcluster"]
+        models = ["minimumdistanceclassifier", "perceptronsimples", "perceptrondelta", "bayesclassifier","partitionalcluster"]
         return jsonify({"message": "O arquivo foi passado corretamente", "data": len(capture.getData().to_dict(orient='records')),"test": len(capture.y_test), "models": models}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400
@@ -284,9 +284,9 @@ def get_perceptronSimples():
         plots = []
 
         # Gerar combinações de atributos para os gráficos
-        '''for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            plot_path = perceptronsimples.plot(colors, col1, col2, predictions, capture.getClassifications(), idx, folder)
-            plots.append(plot_path)'''
+        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = perceptronsimples.plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), idx, folder)
+            plots.append(plot_path)
         
         # Resposta
         response_data = {
@@ -309,32 +309,56 @@ def get_perceptronSimples():
 @app.route('/api/perceptrondelta', methods=['GET'])
 
 def get_perceptronDelta():
-    global capture, colors
-    #Verifica se tem dados
+    global capture, perceptrondelta, colors
     if capture.data is not None:
-
-        folder = f'{directory}perceptrondelta'
+        # Treina o modelo
+        perceptrondelta.setData(capture.x_train, capture.y_train)
+        
+        # Predição
+        predictions = perceptrondelta.fit(capture.x_test)
+        # Transcreve para os nomes das classes
+        predictions["Prediction"] = capture.transcribe(predictions["Prediction"])
+        
+        # print("Prediction", predictions)
+        # Modelo treinado
+        model = perceptrondelta.getData()
+        for m in model:
+            if 'weights' in m and isinstance(m['weights'], np.ndarray):
+                m["weights"] = m["weights"].tolist()
+            if 'bias' in m and isinstance(m['bias'], np.ndarray):
+                m["bias"] = m["bias"].tolist()
+                
+        # print("Model", model)    
+        
+        # Organizar dados de treinamento para resposta
+        train = predictions.to_dict(orient='records')
+        # print("Train", train)
+        
+        # Criar diretório para plots
+        folder = f'{directory}/perceptrondelta'
         prepare_directory(folder)
 
-        precision = None#.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
-
-        #Possibilidade de itens para combinação
+        # Calcula precisão (confusão)
+        precision = perceptrondelta.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+        
+        # Obter nomes das colunas
         columns = list(capture.x_test.columns)
         plots = []
 
-        #combinação dos atributos
-        #for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            #plot_path = .plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
-            #plots.append(plot_path)
-
+        # Gerar combinações de atributos para os gráficos
+        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = perceptrondelta.plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), idx, folder)
+            plots.append(plot_path)
+        
+        # Resposta
         response_data = {
-            "message": "Modelo perceptron Delta criado",
-            "Name": "Classificador Perceptron Delta",
+            "message": "Modelo perceptron com Delta criado",
+            "Name": "Classificador Perceptron com Delta",
             "Model": model,
             "Train": train,
             "Precision": precision,
             "Plots": plots,
-            "Id" : "perceptrondelta"
+            "Id": "perceptrondelta"
         }
 
         return jsonify(response_data)
