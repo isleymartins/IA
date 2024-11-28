@@ -566,21 +566,26 @@ def metrics_models(model1, model2):
         if not (0 < alpha < 1):
             return jsonify({"error": "Invalid alpha value. It must be between 0 and 1."}), 400
         
+        folder = f'{directory}significancetest'
+        prepare_directory(folder)
+        
         # Calcular hipótese
-        hipotese = [QualityMetrics.significanceTest(
+        hipotese, plot = QualityMetrics.significanceTest(
             metrics1["Kappa coefficient"],
             metrics2["Kappa coefficient"],
             metrics1["Var kappa coefficient"],
             metrics2["Var kappa coefficient"],
-            alpha
-        )]
+            alpha,
+            folder
+        )
 
         # Criar resposta
         response_data = {
             "message": "Modelo LinearDiscriminant criado",
             "Name": "Metricas de qualidade",
             "Metrics": metrics_output,
-            "Hipotese": hipotese
+            "Hipotese": [hipotese],
+            "Plots": [plot]
         }
 
         return jsonify(response_data)

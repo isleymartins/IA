@@ -82,21 +82,28 @@ export const fetchUpload = async (fileData: FormData): Promise<FileInformation |
 export const fetchHypothesisTest = async (model1: string, model2: string, alpha: number): Promise<Hipotese | undefined> => {
   try {
     const response = await axios.post(`${apiUrl}/api/metrics/${model1}/${model2}`, {
-      alpha: alpha  // Remova o 'method' do corpo da requisição
+      alpha: alpha
     }, {
-      headers: { 'Content-Type': 'application/json' }  // O cabeçalho para indicar o tipo de conteúdo
+      // O cabeçalho para indicar o tipo de conteúdo
+      headers: { 'Content-Type': 'application/json' }  
     });
 
-    const { Metrics, Hipotese } = response.data;
+    const { Metrics, Hipotese, Plots } = response.data;
     // console.log(response);
+    const blob = await fetchImage(Plots);
 
+    if (!blob) {
+      throw new Error("Blob não disponível");
+    }
     return {
       metrics: Metrics,
-      hipotese: Hipotese
+      hipotese: Hipotese,
+      plots: blob
     };
 
   } catch (error) {
-    console.error("Erro ao buscar métricas de qualidade:", error);
+    console.error("Erro ao buscar metodo de hipotese:", error);
+    return undefined;
   }
 };
 

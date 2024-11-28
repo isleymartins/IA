@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import TableData from "../../Table";
 import { fetchHypothesisTest } from "../../../service/axios";
 import { AuthContext } from "../../../context/AuthContext";
@@ -19,6 +19,7 @@ const HipoteseComponent: React.FC<FormComponentProp> = ({ model }: FormComponent
     const [metrics, setMetrics] = useState<Hipotese>();
     const [selectedOption, setSelectedOption] = React.useState<string>('');
     const [alphaOption, setAlphaOption] = React.useState<number>(0);
+    const [blobUrl, setBlobUrl] = useState<string>("");
 
     const hypothesisTest = async (model1: string, model2: string, alpha: number) => {
         await fetchHypothesisTest(model1, model2, alpha)
@@ -28,6 +29,16 @@ const HipoteseComponent: React.FC<FormComponentProp> = ({ model }: FormComponent
                 }
             })
     }
+
+    useEffect(() => {
+        if (metrics?.plots) {
+            const url = URL.createObjectURL(metrics.plots);
+            setBlobUrl(url);
+
+            // Libera o objeto URL quando o componente é desmontado
+            return () => URL.revokeObjectURL(url);
+        }
+    }, [metrics]);
 
     const { formData } = authContext;
 
@@ -118,11 +129,21 @@ const HipoteseComponent: React.FC<FormComponentProp> = ({ model }: FormComponent
                 </Grid>
             </Grid>
 
-            {metrics && <TableData row={metrics.metrics} feature={formData.feature} title="Modelo" />}
-            <Typography>
-                {metrics?.hipotese ? metrics.hipotese.toString() // Exibe diretamente se for texto ou número
-                    : "Hipótese não disponível"}
-            </Typography>
+            <Box display="flex" flexDirection="column" alignItems="center" p={2}>
+                {metrics && <TableData row={metrics.metrics} feature={formData.feature} title="Modelo" />}
+                {metrics?.hipotese ? (
+                    <>
+                        {blobUrl && (
+                            <img src={blobUrl} alt="Gráfico de Hipótese" style={{ maxWidth: '100%', marginTop: '16px' }} />
+                        )}
+                        <Typography> {metrics.hipotese.toString()}</Typography>
+                    </>
+                    
+                ) : (
+                    <Typography>{"Hipótese não disponível"}</Typography>
+                )}
+
+            </Box>
         </Box>
 
     );

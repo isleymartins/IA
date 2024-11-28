@@ -140,22 +140,71 @@ class QualityMetrics:
         return ((1 + b**2) * prec * rev) / ((b**2 * prec) + rev)
     
     @staticmethod
-    def significanceTest(k1, k2, sigma1, sigma2, alpha):
-        hipotese = "Teste de significancia\nHipótese nula (H0): As médias não são significativamente diferentes\nHipótese alternativa (H1): As médias são significativamente diferentes.\n"
-
-        z = (k1 - k2) / math.sqrt(sigma1 + sigma2)
-
-        pontoCritico = stats.t.ppf(1 - alpha/2, 2)
+    def significanceTest(k1, k2, sigma1, sigma2, alpha, folder):
+        #Realiza o teste de significância para dois índices e gera a interpretação textual.
+        hipotese = (
+            "Teste de significância\n"
+            "Hipótese nula (H0): Os índices não são significativamente diferentes.\n"
+            "Hipótese alternativa (H1): Os índices são significativamente diferentes.\n"
+        )
         
-        menssege =""
-        # Tomar a decisão
-        if abs(z) > pontoCritico:
-            menssege = "Rejeitamos a hipotese nula"
+        # Cálculo do valor de z
+        z = (k1 - k2) / math.sqrt(sigma1 + sigma2)
+        
+        # Valor crítico para um teste bilateral
+        z_critical = stats.norm.ppf(1 - alpha / 2)
+        
+        # Decisão do teste
+        if abs(z) > z_critical:
+            mensagem = "Rejeitamos a hipótese nula. Os índices são significativamente diferentes."
         else:
-            menssege = "Nao rejeitamos a hipotese nula"
+            mensagem = "Não rejeitamos a hipótese nula. Os índices não são significativamente diferentes."
+        
+        # Formatação da saída
+        resultado = (
+            f"{hipotese}"
+            f"Decisão: {mensagem}"
+        )
+        '''
+            f"Estatística do teste z: {z:.4f}\n"
+            f"Valor crítico (±z): ±{z_critical:.4f}\n"
+            f"Nível de significância: {alpha}\n"'''
+        return resultado, QualityMetrics.plotSignificance(alpha, z, z_critical, folder)
+    
+    @staticmethod
+    def plotSignificance(alpha, z_statistic, z_critical, folder):
+        # Gera o gráfico de região crítica com base no nível de significância.
+        title = 'Região Crítica de um Teste Bilateral'
+        # Parâmetros para o gráfico
+        mean = 0  # Média sob H0
+        std = 1  # Desvio padrão
+        x = np.linspace(-4, 4, 1000)  # Valores no eixo x
+        y = stats.norm.pdf(x, mean, std)  # Densidade da normal
 
-        return f"{hipotese}Estatistica de teste z: {z}\nValor critico: {pontoCritico} {menssege}"
+        # Criar o gráfico
+        plt.figure(figsize=(10, 6))
+        plt.plot(x, y, label='Distribuição Normal (H0)', color='blue')
+        plt.fill_between(
+            x, y, where=(x <= -z_critical) | (x >= z_critical),
+            color='red', alpha=0.3, label=f'Região Crítica (α = {alpha})'
+        )
+        plt.axvline(x=z_critical, color='red', linestyle='--', label=f'Z crítico: +{z_critical:.2f}')
+        plt.axvline(x=-z_critical, color='red', linestyle='--', label=f'Z crítico: -{z_critical:.2f}')
+        plt.axvline(x=z_statistic, color='green', linestyle='--', label=f'Estatística z: {z_statistic:.2f}')
 
+        # Configurações do gráfico
+        plt.title(title)
+        plt.xlabel('Estatística de Teste (z)')
+        plt.ylabel('Densidade')
+        plt.legend(loc='upper right')  # Legenda no canto superior direito
+        plt.grid(True)
+
+        image_path = f'{folder}/plot.png'
+        plt.savefig(image_path)
+        plt.close()
+        return image_path
+
+    
     @staticmethod
     def tau_coefficient( matrix_confusion):
         #Calcula o coeficiente Tau.
