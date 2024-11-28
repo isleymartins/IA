@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 # Importando diretamente do pacote controllers
-from controllers import MinimumDistanceClassifier, BayesClassifier, Perceptron, PerceptronDelta, RandomColors, Capture, PartitionalCluster, QualityMetrics
+from controllers import MinimumDistanceClassifier, BayesClassifier, Perceptron, PerceptronDelta, RandomColors, Capture, PartitionalCluster, QualityMetrics, Boltzman
 import os
 import shutil
 from itertools import combinations
@@ -25,7 +25,7 @@ perceptrondelta = PerceptronDelta()
 bayesClassifier = BayesClassifier()
 neuralnetworks = None
 partitionalcluster = PartitionalCluster()
-boltzmanmachine = None
+boltzmanmachine = Boltzman()
 
 directory = 'image/'
 
@@ -131,7 +131,7 @@ def upload_file():
         capture.shareData(feature, testCase)
         colors.setData(len(capture.y_train.unique()))
 
-        models = ["minimumdistanceclassifier", "perceptronsimples", "perceptrondelta", "bayesclassifier","partitionalcluster"]
+        models = ["minimumdistanceclassifier", "perceptronsimples", "perceptrondelta", "bayesclassifier","partitionalcluster","boltzmanmachine"]
         return jsonify({"message": "O arquivo foi passado corretamente", "data": len(capture.getData().to_dict(orient='records')),"test": len(capture.y_test), "models": models}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400
@@ -442,7 +442,7 @@ def get_partitionalCluster():
             plots.append(plot_path)
         plots.append(image)
          
-        print(train)
+        #print(train)
         response_data = {
             "message": "Modelo Cluster Particional criado",
             "Name": "Classificador Cluster Particional",
@@ -461,23 +461,45 @@ def get_partitionalCluster():
 @app.route('/api/boltzmanmachine', methods=['GET'])
 
 def get_boltzmanMachine():
-    global capture, colors
+    global capture, boltzmanmachine, colors
+   
     #Verifica se tem dados
     if capture.data is not None:
-
+        
+         #Faz o modelo com os dados
+        boltzmanmachine.setData(capture.x_train, capture.y_train, capture.feature)
+        
+        #Predicao
+        predictions = boltzmanmachine.fit(capture.x_test,capture.y_test)
+        print("!app",predictions)
+        predictions["Prediction"]=capture.transcribe(predictions["Prediction"])
+        print("passou")
+        #Modelo
+        modelData =  boltzmanmachine.getData()
+        model = [{
+            'weights': modelData['weights'].tolist(),
+            'hidden_bias': modelData['hidden_bias'].tolist(),
+            'visible_bias': modelData['visible_bias'].tolist()
+            }]
+        print("model", model)
+        train = [
+                    {**features}
+                    for species, features in predictions.transpose().items()
+                ]
+       
         folder = f'{directory}boltzmanmachine'
         prepare_directory(folder)
 
-        precision = None#.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+        precision = boltzmanmachine.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
 
         #Possibilidade de itens para combinação
         columns = list(capture.x_test.columns)
         plots = []
 
         #combinação dos atributos
-        #for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            #plot_path = .plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
-            #plots.append(plot_path)
+        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = boltzmanmachine.plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
+            plots.append(plot_path)
 
         response_data = {
             "message": "Modelo Maquina de Boltzman criado",

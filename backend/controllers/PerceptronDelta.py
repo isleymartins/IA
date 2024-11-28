@@ -8,7 +8,7 @@ from itertools import combinations
 app = Flask(__name__)
 
 class PerceptronDelta:
-    def __init__(self, learning_rate=0.01, epochs=1000):
+    def __init__(self, learning_rate=0.01, epochs=100):
         #Objeto com o modelo
         self.models = []
         #Taxa de aprendizado

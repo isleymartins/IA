@@ -8,7 +8,7 @@ from itertools import combinations
 app = Flask(__name__)
 
 class Perceptron:
-    def __init__(self, learning_rate=0.01, epochs=1000):
+    def __init__(self, learning_rate=0.01, epochs=100):
         #Objeto com o modelo
         self.models = []
         #Taxa de aprendizado
@@ -86,7 +86,7 @@ class Perceptron:
         plt.figure(figsize=(10, 6))
 
         for idx, (key, tipo) in enumerate(classifications.items()):
-            print("model",idx, "tipo", tipo, "Key",key)
+            # print("model",idx, "tipo", tipo, "Key",key)
             plt.scatter(
                 result[result['Prediction'] == tipo][columnX],
                 result[result['Prediction'] == tipo][columnY],

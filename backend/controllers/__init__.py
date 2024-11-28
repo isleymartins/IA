@@ -6,3 +6,4 @@ from .RandomColors import RandomColors
 from .PartitionalCluster import PartitionalCluster
 from .QualityMetrics import QualityMetrics
 from .Capture import Capture
+from .Boltzman import Boltzman
