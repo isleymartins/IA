@@ -422,9 +422,9 @@ def get_partitionalCluster():
        
         if len(data_copy.columns)>2: 
             data_copy  = data_copy.drop(columns=[capture.feature])
-            
-        partitionalcluster.setData(data_copy , k_max)
-        qtd,image = partitionalcluster.train(data_copy ,k_max, folder)
+        if  k_max>=2:     
+           partitionalcluster.setData(data_copy , k_max)
+           qtd,image = partitionalcluster.train(data_copy ,k_max, folder)
         
         train = [
             {**features}

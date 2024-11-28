@@ -27,7 +27,7 @@ class Boltzman:
     def initialize_parameters(self, n_visible):
         self.n_visible = n_visible
         self.n_hidden = self.n_hidden or n_visible
-        self.weights = np.random.randn(self.n_visible, self.n_hidden) * 0.1
+        self.weights = np.zeros((self.n_visible, self.n_hidden))
         self.hidden_bias = np.zeros(self.n_hidden)
         self.visible_bias = np.zeros(self.n_visible)
 
@@ -71,15 +71,16 @@ class Boltzman:
 
     def fit(self, X_test, y_test):
         data = pd.concat([X_test.reset_index(drop=True), y_test.reset_index(drop=True)], axis=1)
+        # data = pd.concat([X_test.reset_index(drop=True), pd.Series([0] * len(X_test), name='Extra_Column')], axis=1)
         dataGroup = data.values
         # Normalizar dados de teste
         X_test_normalized = (dataGroup - dataGroup.min()) / (dataGroup.max() - dataGroup.min()) # Normalizando os dados de teste
 
-        print("*#",len(X_test_normalized ))
+        #print("*#",len(X_test_normalized ))
         hidden_probs = self.propagar_frente(X_test_normalized)
         
-        output_df = pd.DataFrame(hidden_probs,  columns=[i for i in X_test.columns] + ['Prediction'])
-        print("*",output_df)
+        output_df = pd.DataFrame(X_test,  columns=[i for i in X_test.columns] + ['Prediction'])
+        # print("*",output_df)
         output_df['Prediction'] = np.argmax(hidden_probs, axis=1)+1
         
         return output_df

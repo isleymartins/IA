@@ -25,7 +25,10 @@ class QualityMetrics:
         for column in range(len(matrix_confusion)):
             ok = matrix_confusion[column][column]
             divider = np.sum(matrix_confusion[:, column])
-            accuracy.append(ok / divider)
+            if(divider>0):
+              accuracy.append(ok / divider)
+            else:
+                return 0
         return accuracy
 
     @staticmethod
@@ -34,7 +37,10 @@ class QualityMetrics:
         
         ok = np.trace(matrix_confusion)
         divider = np.sum(matrix_confusion)
-        return ok / divider
+        if(divider>0):
+              return ok / divider
+        else:
+         return 0
 
     @staticmethod
     def causal_accuracy(matrix_confusion):
