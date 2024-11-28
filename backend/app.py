@@ -393,17 +393,19 @@ def get_partitionalCluster():
         column = data.get("column")
         data_copy = capture.data.copy()
      
-        #replacement_data, transcribe = capture.replacement(data_copy[capture.feature])
+        replacement_data, transcribe = capture.replacement(data_copy[capture.feature])
+        data_copy[capture.feature]=replacement_data
         
-        #data_copy[capture.feature]=replacement_data
-        feature = data_copy.drop(columns=[f"{column}"])
-        
-        partitionalcluster.setData(feature, k_max)
-        qtd,image = partitionalcluster.train(feature,k_max, folder)
+       
+        if column in data_copy.columns: 
+            data_copy  = data_copy.drop(columns=[f"{column}"])
+            
+        partitionalcluster.setData(data_copy , k_max)
+        qtd,image = partitionalcluster.train(data_copy ,k_max, folder)
         
         
         # Possibilidade de itens para combinação
-        columns = list(feature.columns)
+        columns = list(data_copy.columns)
         plots = []
         colors = RandomColors()
         colors.setData(k_max)
@@ -420,7 +422,7 @@ def get_partitionalCluster():
             # "Train": result,
             "Plots": plots,
             "Id": "partitionalcluster"
-        }
+        }  
 
         return jsonify(response_data)
     else:
