@@ -390,17 +390,20 @@ def get_partitionalCluster():
         
         data = request.get_json()
         k_max = data.get("k_max")
+        column = data.get("column")
         data_copy = capture.data.copy()
-        replacement_data, transcribe = capture.replacement(data_copy[capture.feature])
+     
+        #replacement_data, transcribe = capture.replacement(data_copy[capture.feature])
         
-        data_copy[capture.feature]=replacement_data
+        #data_copy[capture.feature]=replacement_data
+        feature = data_copy.drop(columns=[f"{column}"])
         
-        partitionalcluster.setData(data_copy, k_max)
-        model = partitionalcluster.train(data_copy,k_max)
+        partitionalcluster.setData(feature, k_max)
+        qtd,image = partitionalcluster.train(feature,k_max, folder)
         
         
         # Possibilidade de itens para combinação
-        columns = list(data_copy.columns)
+        columns = list(feature.columns)
         plots = []
         colors = RandomColors()
         colors.setData(k_max)
@@ -408,11 +411,12 @@ def get_partitionalCluster():
         for idx in range(k_max):
             plot_path = partitionalcluster.plot(colors.getData(),idx, folder)
             plots.append(plot_path)
-
+        plots.append(image)
+         
         response_data = {
             "message": "Modelo Cluster Particional criado",
             "Name": "Classificador Cluster Particional",
-            "Model": [int(model)],
+            "Model": [int(qtd)],
             # "Train": result,
             "Plots": plots,
             "Id": "partitionalcluster"

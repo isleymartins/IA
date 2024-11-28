@@ -100,10 +100,11 @@ export const fetchHypothesisTest = async (model1: string, model2: string, alpha:
   }
 };
 
-export const fetchPartitionalCluster = async (k_max: number): Promise<ModelPrediction | undefined> => {
+export const fetchPartitionalCluster = async (k_max: number,column:string): Promise<ModelPrediction | undefined> => {
   try {
     const response = await axios.post(`${apiUrl}/api/partitionalcluster`, {
-      k_max: k_max  // Remova o 'method' do corpo da requisição
+      k_max: k_max,  // Remova o 'method' do corpo da requisição
+      column: column
     }, {
       headers: { 'Content-Type': 'application/json' }  // O cabeçalho para indicar o tipo de conteúdo
     });

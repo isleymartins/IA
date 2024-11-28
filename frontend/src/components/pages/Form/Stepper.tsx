@@ -14,17 +14,18 @@ export default function Stepper({ item }: any) {
     const theme = useTheme();
     const [activeStep, setActiveStep] = React.useState(0);
 
-
-    console.log(item)
     const steps = item?.map((blob:any, imgIndex:number) => {
         const url = URL.createObjectURL(blob);
-        return {
+
+        if(item.length-1!==imgIndex){
+            return {
             label: imgIndex+1,
             description: url?<img key={imgIndex} src={url} alt="Plot Image" style={{width: '28vw' }} />:"Erro ao carregar"
-        }
+        } }
+       
     })
 
-    const maxSteps = steps?.length;
+    const maxSteps = steps?.length-1;
 
     const handleNext = () => {
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
