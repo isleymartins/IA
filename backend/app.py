@@ -266,9 +266,9 @@ def get_perceptronSimples():
                 m["weights"] = m["weights"].tolist()
             if 'bias' in m and isinstance(m['bias'], np.ndarray):
                 m["bias"] = m["bias"].tolist()
-            print("M", m)
+
             m[capture.feature] = capture.transcribe( pd.Series(m[capture.feature]))[0]
-        print("Model", model)
+
         
         # Organizar dados de treinamento para resposta
         train = predictions.to_dict(orient='records')
@@ -315,7 +315,7 @@ def get_perceptronSimples2():
         data = requestData.get("data")
         epochs = data[0]
         learningRate = data[1]
-        print("!perceptronSimples2", epochs," ",learningRate)
+        
         # Treina o modelo
         perceptronsimples.setData(capture.x_train, capture.y_train, learningRate, epochs, capture.feature)
         
@@ -333,10 +333,8 @@ def get_perceptronSimples2():
                 m["weights"] = m["weights"].tolist()
             if 'bias' in m and isinstance(m['bias'], np.ndarray):
                 m["bias"] = m["bias"].tolist()
-            print("M", m)
             m[capture.feature] = capture.transcribe( pd.Series(int(m[capture.feature])))[0]
-        print("Model", model)
-                
+
         # print("Model", model)    
         
         # Organizar dados de treinamento para resposta
@@ -381,7 +379,7 @@ def get_perceptronDelta():
     global capture, perceptrondelta, colors
     if capture.data is not None:
         # Treina o modelo
-        perceptrondelta.setData(capture.x_train, capture.y_train)
+        perceptrondelta.setData(capture.x_train, capture.y_train, 0.01,100, capture.feature)
         
         # Predição
         predictions = perceptrondelta.fit(capture.x_test)
@@ -396,6 +394,74 @@ def get_perceptronDelta():
                 m["weights"] = m["weights"].tolist()
             if 'bias' in m and isinstance(m['bias'], np.ndarray):
                 m["bias"] = m["bias"].tolist()
+            print("M", m)
+            m[capture.feature] = capture.transcribe( pd.Series(int(m[capture.feature])))[0]
+                
+        # print("Model", model)    
+        
+        # Organizar dados de treinamento para resposta
+        train = predictions.to_dict(orient='records')
+        # print("Train", train)
+        
+        # Criar diretório para plots
+        folder = f'{directory}perceptrondelta'
+        prepare_directory(folder)
+
+        # Calcula precisão (confusão)
+        precision = perceptrondelta.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+        
+        # Obter nomes das colunas
+        columns = list(capture.x_test.columns)
+        plots = []
+
+        # Gerar combinações de atributos para os gráficos
+        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = perceptrondelta.plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), idx, folder)
+            plots.append(plot_path)
+        
+        # Resposta
+        response_data = {
+            "message": "Modelo perceptron com Delta criado",
+            "Name": "Classificador Perceptron com Delta",
+            "Model": model,
+            "Train": train,
+            "Precision": precision,
+            "Plots": plots,
+            "Id": "perceptrondelta"
+        }
+
+        return jsonify(response_data)
+    else:
+        return jsonify({"message": "Invalid data"}), 400
+
+@app.route('/api/perceptrondelta', methods=['POST'])
+def get_perceptronDelta2():
+    global capture, perceptrondelta, colors
+    if capture.data is not None:
+         #Captura [epochs, learningRate]
+        requestData = request.get_json()
+        data = requestData.get("data")
+        epochs = data[0]
+        learningRate = data[1]
+
+        # Treina o modelo
+        perceptrondelta.setData(capture.x_train, capture.y_train, learningRate,epochs, capture.feature)
+        
+        # Predição
+        predictions = perceptrondelta.fit(capture.x_test)
+        # Transcreve para os nomes das classes
+        predictions["Prediction"] = capture.transcribe(predictions["Prediction"])
+        
+        # print("Prediction", predictions)
+        # Modelo treinado
+        model = perceptrondelta.getData()
+        for m in model:
+            if 'weights' in m and isinstance(m['weights'], np.ndarray):
+                m["weights"] = m["weights"].tolist()
+            if 'bias' in m and isinstance(m['bias'], np.ndarray):
+                m["bias"] = m["bias"].tolist()
+
+            m[capture.feature] = capture.transcribe( pd.Series(int(m[capture.feature])))[0]
                 
         # print("Model", model)    
         

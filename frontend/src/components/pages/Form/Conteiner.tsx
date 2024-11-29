@@ -47,7 +47,7 @@ const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComp
           </Grid>
         }
         {
-          (modelId == "perceptronsimples") && <Grid size={12}>
+          (modelId == "perceptronsimples"||modelId == "perceptrondelta") && <Grid size={12}>
             <PercepthonComponent modelId={modelId} model={model}/>
           </Grid>
         }

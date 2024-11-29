@@ -2,17 +2,15 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
-from flask import Flask, request, jsonify
-from itertools import combinations
 
 class PerceptronDelta:
-    def __init__(self, learning_rate=0.01, epochs=100):
-        #Objeto com o modelo
+    def __init__(self):
+         #Objeto com o modelo
         self.models = []
         #Taxa de aprendizado
-        self.learning_rate = learning_rate
+        self.learning_rate = 0
         #Epocas
-        self.epochs = epochs
+        self.epochs = 0
         #Inicializa com None
         self.matrixConfusion = None
 
@@ -38,7 +36,7 @@ class PerceptronDelta:
         x['Prediction'] = predictions
         return x
 
-    def train(self, x_train, y_train, class_label):
+    def train(self, x_train, y_train, class_label, feature):
         #Inicialização dos pesos e bias
         weights = np.zeros(x_train.shape[1])
         bias = 0
@@ -57,14 +55,16 @@ class PerceptronDelta:
                 weights += self.learning_rate * gradient * xi
                 bias += self.learning_rate * gradient
 
-        return {"weights": weights, "bias": bias}
+        return {"weights": weights, "bias": bias, f'{feature}': class_label }
 
-    def train_multiclass(self, x_train, y_train):
+    def train_multiclass(self, x_train, y_train, learning_rate, epochs, feature):
         self.models = []
         self.classes = np.unique(y_train)
+        self.learning_rate =learning_rate
+        self.epochs = epochs
 
         for class_label in self.classes:
-            model = self.train(x_train, y_train, class_label)
+            model = self.train(x_train, y_train, class_label, feature)
             self.models.append(model)
 
     def fit(self, x_test):
@@ -119,8 +119,8 @@ class PerceptronDelta:
     def getData(self):
         return self.models
 
-    def setData(self, x_train, y_train):
-        self.train_multiclass(x_train, y_train)
+    def setData(self, x_train, y_train, learning_rate, epochs, feature):
+        self.train_multiclass(x_train, y_train, learning_rate, epochs, feature)
 
     def getMatrizConfusion(self):
         return self.matrixConfusion

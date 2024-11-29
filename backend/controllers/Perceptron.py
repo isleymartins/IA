@@ -23,10 +23,11 @@ class Perceptron:
 
         for xi in x.values:
             class_scores = [np.dot(xi, model["weights"]) + model["bias"] for model in self.models]
+            #Pegar a classe com maior pontuacao
             predicted_class = self.classes[np.argmax(class_scores)]
             predictions.append(predicted_class)
-
-        x = x.copy()  # Cria uma cópia do DataFrame
+        # Cria uma cópia do DataFrame
+        x = x.copy()  
         x['Prediction'] = predictions
         return x
 
@@ -39,6 +40,8 @@ class Perceptron:
                 binary_target = 1 if target == class_label else 0
                 prediction = self.activation_function(np.dot(xi, weights) + bias)
                 error = binary_target - prediction
+                
+                # Atualização dos pesos e viés
                 weights += self.learning_rate * error * xi
                 bias += self.learning_rate * error
         
