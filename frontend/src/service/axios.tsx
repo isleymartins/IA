@@ -141,3 +141,39 @@ export const fetchPartitionalCluster = async (k_max: number): Promise<ModelPredi
     console.error("Erro ao buscar o Cluster Paticional:", error);
   }
 };
+
+export const fetchModelData = async (data:any[], model: string): Promise<ModelPrediction | undefined> => {
+  try {
+    const response = await axios.post(`${apiUrl}/api/${model}`, {
+      data: data
+    }, {
+      headers: { 'Content-Type': 'application/json' }  // O cabeçalho para indicar o tipo de conteúdo
+    });
+
+    const { Name, Model, Precision, Train, Plots, Id } = response.data;
+
+    const blobs: Blob[] = [];
+    for (const imagePath of Plots) {
+      const blob = await fetchImage(imagePath);
+      if (blob) {
+        blobs.push(blob);
+      } else {
+        console.warn(`Imagem não encontrada: ${imagePath}`);
+      }
+    }
+    const qualityMetrics = await fetchQualityMetrics(model)
+
+    const modelPrediction: ModelPrediction = {
+      name: Name,
+      model: Model,
+      test: Train,
+      plots: blobs,
+      id: Id,
+      confusionMatrix: Array.isArray(Precision) ? [...Precision] : [],
+      qualityMetrics: qualityMetrics
+    };
+    return modelPrediction;
+  } catch (error) {
+    console.error('Erro ao buscar o modelo:', error);
+  }
+};

@@ -11,6 +11,7 @@ import Stepper from './Stepper';
 import HipoteseComponent from './Hipotese';
 import { Warning } from '@mui/icons-material';
 import PartiticionalCLusterComponent from './PartitionalCluster';
+import PercepthonComponent from './Percepthon';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -33,17 +34,21 @@ const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComp
 
   const { formData } = authContext;
 
-  console.log("@", modelId)
+  console.log("@", model?.model)
   return (
     <Box sx={{ borderImageSlice: 'red', width: '70vw' }}>
       <Grid container spacing={2} >
         {
-          !model && modelId !== "partitionalcluster" &&
-          <Grid size={12}>
+          !model && modelId !== "partitionalcluster" && <Grid size={12}>
             <Item key={`${modelId}_0`}>
               <Warning />
               <Typography> Adicione os dados</Typography>
             </Item>
+          </Grid>
+        }
+        {
+          (modelId == "perceptronsimples") && <Grid size={12}>
+            <PercepthonComponent modelId={modelId} model={model}/>
           </Grid>
         }
         {

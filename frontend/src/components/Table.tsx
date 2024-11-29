@@ -74,7 +74,7 @@ const renderNestedTable = (value: any, classes:any) => (
 
 const TableData = ({ row, feature, title }: Rows) => {
     const classes = useStyles();
-
+    console.log("!!",row," ", feature, " ", title)
     const hasFeature = row?.some(obj => feature in obj);
     const hasPrediction = row?.some(obj => 'Prediction' in obj);
 

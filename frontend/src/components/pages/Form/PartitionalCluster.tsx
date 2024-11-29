@@ -1,5 +1,4 @@
 import React, { useContext, useState } from 'react';
-import TableData from "../../Table";
 import { fetchPartitionalCluster } from "../../../service/axios";
 import { AuthContext } from "../../../context/AuthContext";
 import { Hipotese, ModelPrediction } from "../../../model/model";

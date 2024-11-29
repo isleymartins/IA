@@ -5,8 +5,6 @@ from sklearn.metrics import confusion_matrix
 from flask import Flask, request, jsonify
 from itertools import combinations
 
-app = Flask(__name__)
-
 from sklearn.preprocessing import MinMaxScaler
 
 class Boltzman:

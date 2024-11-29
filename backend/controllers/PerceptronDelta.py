@@ -5,8 +5,6 @@ from sklearn.metrics import confusion_matrix
 from flask import Flask, request, jsonify
 from itertools import combinations
 
-app = Flask(__name__)
-
 class PerceptronDelta:
     def __init__(self, learning_rate=0.01, epochs=100):
         #Objeto com o modelo

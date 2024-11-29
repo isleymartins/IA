@@ -131,7 +131,7 @@ def upload_file():
         capture.shareData(feature, testCase)
         colors.setData(len(capture.y_train.unique()))
 
-        models = ["minimumdistanceclassifier", "perceptronsimples", "perceptrondelta", "bayesclassifier","partitionalcluster","boltzmanmachine"]
+        models = ["minimumdistanceclassifier", "perceptronsimples", "perceptrondelta", "bayesclassifier","partitionalcluster"]
         return jsonify({"message": "O arquivo foi passado corretamente", "data": len(capture.getData().to_dict(orient='records')),"test": len(capture.y_test), "models": models}), 200
     else:
         return jsonify({"message": "Invalid file type"}), 400
@@ -250,7 +250,7 @@ def get_perceptronSimples():
     global capture, perceptronsimples, colors
     if capture.data is not None:
         # Treina o modelo
-        perceptronsimples.setData(capture.x_train, capture.y_train)
+        perceptronsimples.setData(capture.x_train, capture.y_train, 0.01, 100, capture.feature)
         
         # Predição
         predictions = perceptronsimples.fit(capture.x_test)
@@ -260,11 +260,82 @@ def get_perceptronSimples():
         # print("Prediction", predictions)
         # Modelo treinado
         model = perceptronsimples.getData()
+        #print("Model", model["models"])
         for m in model:
             if 'weights' in m and isinstance(m['weights'], np.ndarray):
                 m["weights"] = m["weights"].tolist()
             if 'bias' in m and isinstance(m['bias'], np.ndarray):
                 m["bias"] = m["bias"].tolist()
+            print("M", m)
+            m[capture.feature] = capture.transcribe( pd.Series(m[capture.feature]))[0]
+        print("Model", model)
+        
+        # Organizar dados de treinamento para resposta
+        train = predictions.to_dict(orient='records')
+        # print("Train", train)
+        
+        # Criar diretório para plots
+        folder = f'{directory}perceptronsimples'
+        prepare_directory(folder)
+
+        # Calcula precisão (confusão)
+        precision = perceptronsimples.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+        
+        # Obter nomes das colunas
+        columns = list(capture.x_test.columns)
+        plots = []
+
+        # Gerar combinações de atributos para os gráficos
+        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = perceptronsimples.plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), idx, folder)
+            plots.append(plot_path)
+        
+        # Resposta
+        response_data = {
+            "message": "Modelo perceptron Simples criado",
+            "Name": "Classificador Perceptron Simples",
+            "Model": model,
+            "Train": train,
+            "Precision": precision,
+            "Plots": plots,
+            "Id": "perceptronsimples"
+        }
+
+        return jsonify(response_data)
+    else:
+        return jsonify({"message": "Invalid data"}), 400
+    
+@app.route('/api/perceptronsimples', methods=['POST'])
+def get_perceptronSimples2():
+    global capture, perceptronsimples, colors
+    if capture.data is not None:
+        
+        #Captura [epochs, learningRate]
+        requestData = request.get_json()
+        data = requestData.get("data")
+        epochs = data[0]
+        learningRate = data[1]
+        print("!perceptronSimples2", epochs," ",learningRate)
+        # Treina o modelo
+        perceptronsimples.setData(capture.x_train, capture.y_train, learningRate, epochs, capture.feature)
+        
+        # Predição
+        predictions = perceptronsimples.fit(capture.x_test)
+        # Transcreve para os nomes das classes
+        predictions["Prediction"] = capture.transcribe(predictions["Prediction"])
+        
+        # print("Prediction", predictions)
+        # Modelo treinado
+        model = perceptronsimples.getData()
+        #print("Model", model["models"])
+        for m in model:
+            if 'weights' in m and isinstance(m['weights'], np.ndarray):
+                m["weights"] = m["weights"].tolist()
+            if 'bias' in m and isinstance(m['bias'], np.ndarray):
+                m["bias"] = m["bias"].tolist()
+            print("M", m)
+            m[capture.feature] = capture.transcribe( pd.Series(int(m[capture.feature])))[0]
+        print("Model", model)
                 
         # print("Model", model)    
         
@@ -273,7 +344,7 @@ def get_perceptronSimples():
         # print("Train", train)
         
         # Criar diretório para plots
-        folder = f'{directory}/perceptronsimples'
+        folder = f'{directory}perceptronsimples'
         prepare_directory(folder)
 
         # Calcula precisão (confusão)
@@ -304,10 +375,8 @@ def get_perceptronSimples():
         return jsonify({"message": "Invalid data"}), 400
 
 
-
 #Rota do algoritmo do classificador de Perceptron com Delta
 @app.route('/api/perceptrondelta', methods=['GET'])
-
 def get_perceptronDelta():
     global capture, perceptrondelta, colors
     if capture.data is not None:
@@ -335,7 +404,7 @@ def get_perceptronDelta():
         # print("Train", train)
         
         # Criar diretório para plots
-        folder = f'{directory}/perceptrondelta'
+        folder = f'{directory}perceptrondelta'
         prepare_directory(folder)
 
         # Calcula precisão (confusão)
@@ -401,6 +470,63 @@ def get_neuralNetworks():
     else:
         return jsonify({"message": "Invalid data"}), 400
 
+#Rota do algoritmo do classificador de Maquina de Boltzman
+@app.route('/api/boltzmanmachine', methods=['GET'])
+def get_boltzmanMachine():
+    global capture, boltzmanmachine, colors
+   
+    #Verifica se tem dados
+    if capture.data is not None:
+        
+         #Faz o modelo com os dados
+        boltzmanmachine.setData(capture.x_train, capture.y_train, capture.feature)
+        
+        #Predicao
+        predictions = boltzmanmachine.fit(capture.x_test,capture.y_test)
+        print("!app",predictions)
+        predictions["Prediction"]=capture.transcribe(predictions["Prediction"])
+        print("passou")
+        #Modelo
+        modelData =  boltzmanmachine.getData()
+        model = [{
+            'weights': modelData['weights'].tolist(),
+            'hidden_bias': modelData['hidden_bias'].tolist(),
+            'visible_bias': modelData['visible_bias'].tolist()
+            }]
+        print("model", model)
+        train = [
+                    {**features}
+                    for species, features in predictions.transpose().items()
+                ]
+       
+        folder = f'{directory}boltzmanmachine'
+        prepare_directory(folder)
+
+        precision = boltzmanmachine.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
+
+        #Possibilidade de itens para combinação
+        columns = list(capture.x_test.columns)
+        plots = []
+
+        #combinação dos atributos
+        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
+            plot_path = boltzmanmachine.plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
+            plots.append(plot_path)
+
+        response_data = {
+            "message": "Modelo Maquina de Boltzman criado",
+            "Name": "Classificador Maquina de Boltzman",
+            "Model": model,
+            "Train": train,
+            "Precision": precision,
+            "Plots": plots,
+            "Id" : "boltzmanmachine"
+        }
+
+        return jsonify(response_data)
+    else:
+        return jsonify({"message": "Invalid data"}), 400
+
 #Rota do algoritmo do classificador de Cluster Particional
 @app.route('/api/partitionalcluster', methods=['POST'])
 
@@ -459,63 +585,6 @@ def get_partitionalCluster():
         return jsonify({"message": "Dados inválidos"}), 400
 
 
-#Rota do algoritmo do classificador de Maquina de Boltzman
-@app.route('/api/boltzmanmachine', methods=['GET'])
-
-def get_boltzmanMachine():
-    global capture, boltzmanmachine, colors
-   
-    #Verifica se tem dados
-    if capture.data is not None:
-        
-         #Faz o modelo com os dados
-        boltzmanmachine.setData(capture.x_train, capture.y_train, capture.feature)
-        
-        #Predicao
-        predictions = boltzmanmachine.fit(capture.x_test,capture.y_test)
-        print("!app",predictions)
-        predictions["Prediction"]=capture.transcribe(predictions["Prediction"])
-        print("passou")
-        #Modelo
-        modelData =  boltzmanmachine.getData()
-        model = [{
-            'weights': modelData['weights'].tolist(),
-            'hidden_bias': modelData['hidden_bias'].tolist(),
-            'visible_bias': modelData['visible_bias'].tolist()
-            }]
-        print("model", model)
-        train = [
-                    {**features}
-                    for species, features in predictions.transpose().items()
-                ]
-       
-        folder = f'{directory}boltzmanmachine'
-        prepare_directory(folder)
-
-        precision = boltzmanmachine.pressure(capture.transcribe(capture.y_test), predictions, capture.feature)
-
-        #Possibilidade de itens para combinação
-        columns = list(capture.x_test.columns)
-        plots = []
-
-        #combinação dos atributos
-        for idx, (col1, col2) in enumerate(combinations(columns, 2)):
-            plot_path = boltzmanmachine.plot(colors.getData(), col1, col2, predictions, capture.getClassifications(), f'{idx}', folder)
-            plots.append(plot_path)
-
-        response_data = {
-            "message": "Modelo Maquina de Boltzman criado",
-            "Name": "Classificador Maquina de Boltzman",
-            "Model": model,
-            "Train": train,
-            "Precision": precision,
-            "Plots": plots,
-            "Id" : "boltzmanmachine"
-        }
-
-        return jsonify(response_data)
-    else:
-        return jsonify({"message": "Invalid data"}), 400
 
 
 #Rotas utils
@@ -525,6 +594,7 @@ def get_boltzmanMachine():
 def send_plot(model, path):
     return send_from_directory(model, path)
 
+#Rota para comparar metricas de dois modelos
 @app.route('/api/metrics/<model1>/<model2>', methods=['POST'])
 def metrics_models(model1, model2):
     global capture, colors, minimumDistanceClassifier, perceptronsimples, perceptrondelta, bayesClassifier, neuralnetworks, partitionalcluster, boltzmanmachine
@@ -594,6 +664,7 @@ def metrics_models(model1, model2):
 
     return jsonify({"error": "Failed to calculate metrics"}), 500
 
+#Rota para receber metricas de um modelo
 @app.route('/api/metrics/<model>', methods=['GET'])
 def metrics_model(model):
     global capture, colors, minimumDistanceClassifier, perceptronsimples, perceptrondelta, bayesClassifier, neuralnetworks, partitionalcluster, boltzmanmachine
@@ -625,6 +696,8 @@ def metrics_model(model):
             
         return jsonify(response_data)
     return jsonify({"error": "Failed to calculate metrics"}), 500
+
+
 
 
 
