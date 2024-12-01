@@ -24,4 +24,4 @@ pip-log.txt
 # Ignorar arquivos de dados
 *.sqlite3
 
-image
+image/
