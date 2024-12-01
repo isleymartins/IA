@@ -1,2 +1,27 @@
-node_modules
-.env
+# Ignorar pastas de cache
+__pycache__/
+
+# Ignorar dependências
+venv/
+.venv/
+env/
+.env/
+
+# Ignorar arquivos de configuração do ambiente virtual
+.envrc
+.env.local
+
+# Ignorar pacotes e dependências instaladas
+*.egg-info/
+pip-log.txt
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar arquivos do Jupyter Notebook
+*.ipynb_checkpoints
+
+# Ignorar arquivos de dados
+*.sqlite3
+
+image
