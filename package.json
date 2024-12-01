@@ -7,7 +7,10 @@
     "start:frontend": "cd frontend && npm run dev",
     "start:backend": "cd backend && python app.py"
   },
-  "author": "Isley martins Barbosa da Silva, Irlla Martins Barbosa da Silva, Wilton, Matheus",
+  "author": "Isley Martins Barbosa da Silva, Irlla Martins Barbosa da Silva, Wilton, Matheus",
   "license": "ISC",
-  "description": "Projeto desenvolvido para projeto de topicos em IA 2024"
+  "description": "Projeto desenvolvido para projeto de topicos em IA 2024",
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
 }
