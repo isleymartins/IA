@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
-    "start:frontend": "cd frontend && npm start",
+    "start:frontend": "cd frontend && npm run dev",
     "start:backend": "cd backend && python app.py"
   },
   "author": "Isley martins Barbosa da Silva, Irlla Martins Barbosa da Silva, Wilton, Matheus",
