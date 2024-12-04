@@ -12,6 +12,7 @@ import HipoteseComponent from './Hipotese';
 import { Warning } from '@mui/icons-material';
 import PartiticionalCLusterComponent from './PartitionalCluster';
 import PercepthonComponent from './Percepthon';
+import PredictComponent from './Predict';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -47,7 +48,7 @@ const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComp
           </Grid>
         }
         {
-          (modelId == "perceptronsimples"||modelId == "perceptrondelta") && <Grid size={12}>
+          model &&(modelId == "perceptronsimples"||modelId == "perceptrondelta") && <Grid size={12}>
             <PercepthonComponent modelId={modelId} model={model}/>
           </Grid>
         }
@@ -104,6 +105,12 @@ const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComp
             }
 
           </>
+        }
+        {
+          modelId &&
+          <Grid container size={12}>
+            <PredictComponent  modelId={modelId} model={model}/>
+          </Grid>
         }
         {
           modelId === "partitionalcluster" &&

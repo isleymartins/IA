@@ -1,12 +1,11 @@
 import React, { useContext, useState } from 'react';
 import { fetchModelData } from "../../../service/axios";
 import { AuthContext } from "../../../context/AuthContext";
-import { Box, Button, TextField, Typography } from '@mui/material';
+import { Box, Button, TextField } from '@mui/material';
 import { ModelPrediction } from "../../../model/model";
 import Grid from '@mui/material/Grid2';
 import { Paper } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import TableData from '../../Table';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.background.paper,

@@ -115,7 +115,7 @@ export const fetchPartitionalCluster = async (k_max: number): Promise<ModelPredi
     }, {
       headers: { 'Content-Type': 'application/json' }  // O cabeçalho para indicar o tipo de conteúdo
     });
-    const { Name, Model, Precision, Train, Plots, Id} = response.data;
+    const { Name, Model,Train, Plots, Id} = response.data;
     console.log("axios",response)
     const blobs: Blob[] = [];
     for (const imagePath of Plots) {
@@ -173,6 +173,22 @@ export const fetchModelData = async (data:any[], model: string): Promise<ModelPr
       qualityMetrics: qualityMetrics
     };
     return modelPrediction;
+  } catch (error) {
+    console.error('Erro ao buscar o modelo:', error);
+  }
+};
+
+export const fetchPredictData = async (data: { [key: string]: number }, model: string): Promise< String | undefined> => {
+  try {
+    const response = await axios.post(`${apiUrl}/api/predict/${model}`, {
+      data: data
+    }, {
+      headers: { 'Content-Type': 'application/json' }  // O cabeçalho para indicar o tipo de conteúdo
+    });
+
+    const predict = response.data.Prediction;
+    return predict; 
+
   } catch (error) {
     console.error('Erro ao buscar o modelo:', error);
   }

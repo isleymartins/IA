@@ -9,7 +9,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children}) => {
 
   const [formData, setFormData] = useState<Form>({ file: null, testCase: 30, feature: '' });
-  const [fileData, setFileData] = useState<FileInformation>( {data: 0, test: 0, models:[]})
+  const [fileData, setFileData] = useState<FileInformation>( {data: 0, test: 0, columns:[], models:[]})
   const [directory, setDirectory] = useState<string[]>([]);
   const [modelPrediction, setModelPrediction] = useState<ModelPrediction[]>([]);
 

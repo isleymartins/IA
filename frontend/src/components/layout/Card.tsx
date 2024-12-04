@@ -13,7 +13,7 @@ interface CardComponentProps {
     setLoading: (loading: boolean) => void
 }
 
-const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormChange, /*handleFormSubmit, */formData, children, setLoading, loading }) => {
+const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormChange, formData, children, setLoading, loading }) => {
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -21,7 +21,7 @@ const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormCh
     };
 
     return (
-        <Card sx={{ maxWidth: 400, margin: 'auto', padding: "20px", position: 'relative' }}>
+        <Card sx={{ maxWidth: 400, padding: "20px", position: 'relative' }}>
             <IconButton
                 onClick={handleClose} 
 
@@ -34,7 +34,7 @@ const CardComponent: React.FC<CardComponentProps> = ({ handleClose, handleFormCh
                 <CloseIcon />
             </IconButton>
             <form id="uploadForm" onSubmit={handleSubmit}>
-                <CardContent sx={{ margin: '40px 0px 0px 0px', position: 'relative' }}>
+                <CardContent sx={{ margin: '10px 0px 0px 0px', position: 'relative' }}>
                     {children}
                 </CardContent>
                 <CardActions>

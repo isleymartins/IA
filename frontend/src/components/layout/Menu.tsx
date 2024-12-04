@@ -248,10 +248,10 @@ const Menu: React.FC = () => {
         {showCard && (
           <Box
             sx={{
-              position: 'absolute',
+              position: 'fixed',
               top: '64px',
               right: '16px',
-              zIndex: 1300,
+              zIndex: 13,
             }}
           >
             <CardComponent

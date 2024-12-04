@@ -18,6 +18,7 @@ export interface ModelPrediction {
 export interface FileInformation {
     data: number
     test: number
+    columns: string[]
     models: string[]
 }
 export interface CardComponentProps {
