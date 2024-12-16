@@ -107,7 +107,7 @@ const FormComponent: React.FC<FormComponentProp> = ({ modelId, model }: FormComp
           </>
         }
         {
-          modelId &&
+          model &&
           <Grid container size={12}>
             <PredictComponent  modelId={modelId} model={model}/>
           </Grid>
