@@ -7,7 +7,7 @@ Projeto desenvolvido para aplicação de modelos em arquivos de dados numericos
 - `Perceptron`: Classificação por meio de Percepthon.
 - `Perceptron com Delta`: Classificação por meio de Percepthon com delta usando sigmoid.
 - `Classificação de probabilidade Bayes`: Classificação por probabilidade Bayes.
-- `Maquina de Boltzman`: Ainda em desenvolvimento.
+- ~~`Maquina de Boltzman`: Ainda em desenvolvimento.~~
 - `Cluster Particional`: Usando o calculo de Calinski Scores.
   
 # Metricas de Qualidade
